@@ -1,4 +1,4 @@
-# MSDL Core
+# USV Simulation
 
 ## Overview
 
@@ -21,7 +21,7 @@ These components allow evaluation of vessel mission performance under realistic 
 - Ocean condition modeling using NOAA data interpolation
 - Neural network wave prediction model 
 - Parallel simulation runner for large-scale experiments
-- visualization of vessel missions
+- Visualization of vessel missions
 
 ## Setting Up Your Environment
 
@@ -110,7 +110,7 @@ To run large-scale experiments across multiple mission scenarios, a parallel sim
 
 ### Overview
 
-The database schema for the Simulation project is designed to manage and store information about vessels, their missions, waypoints, and related logs. This schema allows for the organization and retrieval of data related to vessel operations, mission planning, and simulation results.
+The database schema for the simulation is designed to manage and store information about vessels, their missions, waypoints, and related logs. This schema allows for the organization and retrieval of data related to vessel operations, mission planning, and simulation results.
 
 ### Tables
 
@@ -119,7 +119,7 @@ This table stores information about each vessel in the simulation.
 
 - `vessel_id` (INTEGER, PRIMARY KEY, AUTOINCREMENT): A unique identifier for each vessel.
 - `name` (TEXT, NOT NULL): The name of the vessel.
-- `sim_name` (TEXT, NOT NULL): The name of the Simulation the vessel ran in.
+- `sim_name` (TEXT, NOT NULL): The name of the simulation the vessel ran in.
 - `type` (TEXT): The type of vessel, e.g., Cargo, Fishing, Research.
 - `capacity` (INTEGER): The capacity of the vessel, e.g., the number of containers, weight in tons, etc.
 - `system_health` (TEXT, NOT NULL): The current health status of the vessel's systems.
@@ -154,7 +154,7 @@ This table defines the waypoints associated with each mission and the order in w
 - `waypoint_id` (INTEGER, NOT NULL): The ID of the waypoint to be visited. This references the `waypoint_id` in the waypoints table.
 - `waypoint_order` (INTEGER, NOT NULL): The order in which the waypoint should be visited during the mission.
 - `goal_time` (DATETIME): The target time to reach the waypoint, in ISO 8601 format.
-- `est_time` (DATETIME): The estimate for the vessel's arrival time, updated to actual arrival time when the vessel reachs the waypoint
+- `est_time` (DATETIME): The estimate for the vessel's arrival time, updated to actual arrival time when the vessel reaches the waypoint
 #### 5. logs
 
 This table stores log entries that record various details about the vessel's status during a mission.
@@ -178,12 +178,12 @@ This table stores details about any mission replans
  - `replan_id` (INTEGER, PRIMARY KEY, AUTOINCREMENT): A unique identifier for each replan.
  - `vessel_id` (INTEGER, NOT NULL): The ID of the vessel associated with this log. This references the `vessel_id` in the vessels table.
 - `mission_id` (INTEGER): The ID of the mission associated with this log. This references the `mission_id` in the missions table.
-- `timestamp` (DATETIME, NOT NULL): The time at which the replan occured, in ISO 8601 format.
-- `latitude` (REAL NOT NULL): Latitiude vessel was at when replan happened
+- `timestamp` (DATETIME, NOT NULL): The time at which the replan occurred, in ISO 8601 format.
+- `latitude` (REAL NOT NULL): Latitude vessel was at when replan happened
 - `longitude` (REAL NOT NULL): Longitude vessel was at when replan happened
 - `total_priority` (INTEGER NOT NULL): Total priority score of replanned mission
 - `num_waypoints` (INTEGER NOT NULL): Number of waypoints in the replanned mission
-- `reason` (TEXT): Reason why replan occured
+- `reason` (TEXT): Reason why replan occurred
 
 
 
