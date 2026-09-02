@@ -7,7 +7,9 @@ import netCDF4
     Run test in terminal: python -m Ocean.tests.sample_test_subset_grib
 """
 
-INPUT_DIR = os.path.expanduser("~/Documents/MSDL/core/Ocean/tests/weather_2_sample_data")
+INPUT_DIR = os.path.expanduser(
+    "~/Documents/MSDL/core/Ocean/tests/weather_2_sample_data"
+)
 input_file = os.path.join(INPUT_DIR, "gfsWave_Global25_20241117_00_003.grib2")
 output_file = "Ocean/tests/test_single_output.nc"
 

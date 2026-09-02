@@ -1,7 +1,9 @@
 """This file generates a time series response off a frequency spectrum.
 """
+
 import numpy as np
 import matplotlib.pyplot as plt
+
 
 class Time_Series:
     def __init__(self, spectrum, omegas):
@@ -13,9 +15,13 @@ class Time_Series:
         """
         self.spectrum = spectrum
         self.omegas = omegas
-        self.delta_omega = self.omegas[1] - self.omegas[0]                      #change in omega between each spectrum data point. Radians per second
-        self.eps = np.random.uniform(0, 2*np.pi, len(self.omegas))              #random phase angles are used and adequate
-        
+        self.delta_omega = (
+            self.omegas[1] - self.omegas[0]
+        )  # change in omega between each spectrum data point. Radians per second
+        self.eps = np.random.uniform(
+            0, 2 * np.pi, len(self.omegas)
+        )  # random phase angles are used and adequate
+
     def batch_response(self, t, x):
         """This function generates a batch response of response amplitudes for all frequencies for a given time and position.
             Uses batch multiplication of arrays to reduce computation time.
@@ -27,11 +33,13 @@ class Time_Series:
         Returns:
             array of floats: amplitudes at a given time and position for each frequency
         """
-        amp = 2*np.sqrt(np.array(self.spectrum)*self.delta_omega)               #amplitude of each frequency component
-        k = self.omegas**2/9.81
-        amp_t = amp*np.cos(k*x - self.omegas*t + self.eps)              
+        amp = 2 * np.sqrt(
+            np.array(self.spectrum) * self.delta_omega
+        )  # amplitude of each frequency component
+        k = self.omegas**2 / 9.81
+        amp_t = amp * np.cos(k * x - self.omegas * t + self.eps)
         return amp_t
-    
+
     def generate_time_series(self, time_range, x):
         """Superimposes the batch responses to generate the overall waves for a given time range and position.
 
@@ -42,10 +50,10 @@ class Time_Series:
         Returns:
             list of floats: amplitudes for each time in the time range
         """
-        #initialize the response spectra
+        # initialize the response spectra
         amps = np.zeros(len(time_range))
         for i in range(len(time_range)):
-            #superimpose the response spectra
+            # superimpose the response spectra
             amps[i] = np.sum(self.batch_response(time_range[i], x))
         return amps
 
@@ -59,5 +67,5 @@ class Time_Series:
         plt.plot(time_range, amps)
         plt.ylabel("Amplitude (m)")
         plt.xlabel("Time (s)")
-        plt.title("Time Domain Response")   
+        plt.title("Time Domain Response")
         plt.show()

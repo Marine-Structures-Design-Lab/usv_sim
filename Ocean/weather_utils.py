@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 #! used by multi_step_plot.py and countour_map_visualizer.py and weather_data_interpolation_API.py
 
+
 # ---------- FILE OPERATIONS ----------
 def get_file_list(directory, pattern="*.nc"):
     """
@@ -27,6 +28,7 @@ def get_file_list(directory, pattern="*.nc"):
     logger.debug(f"{len(files)} .nc files found in {directory}")
     return files
 
+
 def filelist_editor(file_list, fcst_issue_time=None):
     """
     Requires:
@@ -39,12 +41,18 @@ def filelist_editor(file_list, fcst_issue_time=None):
     """
     if fcst_issue_time:
         file_list = [
-            f for f in file_list if f"_Global25_{fcst_issue_time}_" in os.path.basename(f)
+            f
+            for f in file_list
+            if f"_Global25_{fcst_issue_time}_" in os.path.basename(f)
         ]
         if not file_list:
             logger.error(f"No forecast files found issued on date: {fcst_issue_time}")
-            raise FileNotFoundError(f"No forecast files found issued on date: {fcst_issue_time}")
-        logger.debug(f"Filtered to {len(file_list)} forecast files for {fcst_issue_time}")
+            raise FileNotFoundError(
+                f"No forecast files found issued on date: {fcst_issue_time}"
+            )
+        logger.debug(
+            f"Filtered to {len(file_list)} forecast files for {fcst_issue_time}"
+        )
     else:
         file_list = [f for f in file_list if "_000.nc" in os.path.basename(f)]
         if not file_list:
@@ -54,45 +62,50 @@ def filelist_editor(file_list, fcst_issue_time=None):
 
     return sorted(file_list)
 
+
 # ---------- DATA UTILITIES ----------
 
+
 def read_grid_info(file_path, variable_name):
-    #TODO: further refactoring needed (also need to change code in contour_map_visualizer and multi-step_plot.py to incorporate get_grid_info)
+    # TODO: further refactoring needed (also need to change code in contour_map_visualizer and multi-step_plot.py to incorporate get_grid_info)
     """
-    Requires: 
-        - file_path: path to a readable NetCDF file. 
+    Requires:
+        - file_path: path to a readable NetCDF file.
         - variable_name: name of the variable to inspect
 
     Modifies: Nothing.
 
-    Effects: 
+    Effects:
         - Returns spatial grid info and metadata (but not actual data values).
         - ex. lats, lons, lat_min, lat_max, lon_min, lon_max, and unit
     """
 
     with nc.Dataset(file_path) as ds:
-        lats = ds.variables['lat'][:]
-        lons = ds.variables['lon'][:]
-        lat_min = ds.getncattr('lat_min')
-        lat_max = ds.getncattr('lat_max')
-        lon_min = ds.getncattr('lon_min')
-        lon_max = ds.getncattr('lon_max')
+        lats = ds.variables["lat"][:]
+        lons = ds.variables["lon"][:]
+        lat_min = ds.getncattr("lat_min")
+        lat_max = ds.getncattr("lat_max")
+        lon_min = ds.getncattr("lon_min")
+        lon_max = ds.getncattr("lon_max")
         unit = ds.variables[variable_name].units
         #! what if the unit does not exist?
 
-    logger.debug(f"Dataset bounds: lat[{lat_min}, {lat_max}], lon[{lon_min}, {lon_max}]")
+    logger.debug(
+        f"Dataset bounds: lat[{lat_min}, {lat_max}], lon[{lon_min}, {lon_max}]"
+    )
     logger.debug(f"Variable '{variable_name}' has unit {unit}.")
-    return lats, lons, lat_min, lat_max, lon_min, lon_max , unit
+    return lats, lons, lat_min, lat_max, lon_min, lon_max, unit
+
 
 def read_variable_data(file_path, variable_name):
     """
     Requires:
-        - file_path: path to a readable NetCDF file. 
+        - file_path: path to a readable NetCDF file.
         - variable_name: name of the variable to inspect
 
     Modifies: Nothing.
 
-    Effects: 
+    Effects:
         - Returns full data array for a variable (no metadata).
     """
     with nc.Dataset(file_path) as ds:
@@ -110,13 +123,14 @@ def update_fcst_time(file_name):
     Effects: Parses the file name to compute and return a tuple of (issue_datetime, forecast_datetime).
     """
 
-    parts = file_name.split('_')
+    parts = file_name.split("_")
     issue_date = int(parts[2])
     issue_hr = int(parts[3])
-    fcst_hr = int(parts[4].split('.')[0])
+    fcst_hr = int(parts[4].split(".")[0])
     issue_datetime = dt.datetime.strptime(f"{issue_date}{issue_hr:02d}", "%Y%m%d%H")
     fcst_datetime = issue_datetime + dt.timedelta(hours=fcst_hr)
     return issue_datetime, fcst_datetime
+
 
 # ---------- HELPERS ----------
 def find_nearest_index(array, value):
@@ -139,20 +153,21 @@ def extract_timestamp(filename):
     Effects: Parses filename to extract valid forecast time (init + lead hour)
     """
     base = os.path.basename(filename)
-    parts = base.split('_')
+    parts = base.split("_")
     try:
         init_time = dt.datetime.strptime(parts[2] + parts[3], "%Y%m%d%H")
-        forecast_str = parts[4].split('.')[0]
+        forecast_str = parts[4].split(".")[0]
         forecast_hour = int(forecast_str)
         valid_time = init_time + dt.timedelta(hours=forecast_hour)
         return valid_time
     except (IndexError, ValueError) as e:
         logger.warning(f"⚠️ Skipped: could not parse time from {filename} — {e}")
-        return None    
+        return None
+
 
 def extract_value(file_path, variable_name, lat, lon):
 
-    #TODO: further refactoring needed (also need to change code in multi-step_plot.py to incorporate get_grid_info)
+    # TODO: further refactoring needed (also need to change code in multi-step_plot.py to incorporate get_grid_info)
     """
     Requires:
         - file_path: path to a NetCDF file
@@ -165,8 +180,8 @@ def extract_value(file_path, variable_name, lat, lon):
         - Raises ValueError if grid point is too far
     """
     with nc.Dataset(file_path) as ds:
-        lats = ds.variables['lat'][:]
-        lons = ds.variables['lon'][:]
+        lats = ds.variables["lat"][:]
+        lons = ds.variables["lon"][:]
 
         lat_idx = find_nearest_index(lats, lat)
         lon_idx = find_nearest_index(lons, lon)

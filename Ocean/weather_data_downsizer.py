@@ -18,9 +18,9 @@ from Ocean.weather_utils import extract_timestamp
 logging.basicConfig(
     # DEBUG < INFO < WARNING (unexpected happened, but still runs) < ERROR (function not working?) < CRITICAL (software does not work)
     level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
+    format="%(asctime)s - %(levelname)s - %(message)s",
 )
-logger= logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 # --------------------------------------------------------
 # Script to subset NOAA GFS GRIB2 files to a specific lat/lon region
 # and convert to NetCDF format.
@@ -38,10 +38,12 @@ logger= logging.getLogger(__name__)
 # OUTPUT_DIR = r"C:\Users\nclem\Documents\Michigan\PhD\Data\Weather_data"
 
 
-VARIABLE_REGEX = ":(UGRD:10 m above ground|VGRD:10 m above ground|PRMSL:mean sea level):"
+VARIABLE_REGEX = (
+    ":(UGRD:10 m above ground|VGRD:10 m above ground|PRMSL:mean sea level):"
+)
 
 SHORTNAMES = [
-    "ws",       # Wind Speed (m/s)                        [#001]
+    "ws",  # Wind Speed (m/s)                        [#001]
     # "wdir",     # Wind Direction (deg)                    [#002]
     # "u",        # U-Component of Wind (m/s)               [#003]
     # "v",        # V-Component of Wind (m/s)               [#004]
@@ -49,12 +51,14 @@ SHORTNAMES = [
     # "perpw",    # Primary Wave Mean Period (s)          [#006]
     # "dirpw",    # Primary Wave Direction (deg)          [#007]
     # "shww",     # Significant Height of Wind Waves (m)  [#008]
-    "shts",     # Significant Height of Swell Waves     [#009-011]
+    "shts",  # Significant Height of Swell Waves     [#009-011]
     # "mpww",     # Mean Period of Wind Waves (s)         [#012]
-    "mpts",     # Mean Period of Swell Waves            [#013-015]
+    "mpts",  # Mean Period of Swell Waves            [#013-015]
     # "wvdir",    # Direction of Wind Waves (deg)          [#016]
-    "swdir",    # Direction of Swell Waves (deg)        [#017-019]
+    "swdir",  # Direction of Swell Waves (deg)        [#017-019]
 ]
+
+
 def lat_lon_range_check(lat_s, lat_n, lon_w, lon_e):
     """
     REQUIRES: numerical values lon_w, lon_e, lat_s, lat_n
@@ -72,12 +76,14 @@ def lat_lon_range_check(lat_s, lat_n, lon_w, lon_e):
         raise ValueError(f"lat_n ({lat_n}) must be between -90 and 90")
 
     # longitude check
-    if (lon_w > 180 or lon_e > 180):
+    if lon_w > 180 or lon_e > 180:
         if not (0 <= lon_w <= 360 and 0 <= lon_e <= 360):
             raise ValueError("Longitude convention mismatch: both must be in [0, 360]")
-    elif (lon_w < 0 or lon_e < 0):
+    elif lon_w < 0 or lon_e < 0:
         if not (-180 <= lon_w <= 180 and -180 <= lon_e <= 180):
-            raise ValueError("Longitude convention mismatch: both must be in [-180, 180]")
+            raise ValueError(
+                "Longitude convention mismatch: both must be in [-180, 180]"
+            )
     else:
         # both values between 0 and 180 → acceptable in either convention
         pass
@@ -88,18 +94,19 @@ def lat_lon_range_check(lat_s, lat_n, lon_w, lon_e):
     if lon_w >= lon_e:
         raise ValueError(f"lon_w ({lon_w}) must be less than lon_e ({lon_e})")
 
+
 def show_region_on_map(lat_s, lat_n, lon_w, lon_e):
     """
     REQUIRES:
         - lat_s and lat_n within [-90, 90], and lat_s < lat_n
         - lon_w and lon_e within [-180, 360], and lon_w < lon_e
     MODIFIES: None
-    EFFECTS: Generates a Plate Carrée projected world map where the region 
-             bounded by the longitude and latitude values is highlighted 
+    EFFECTS: Generates a Plate Carrée projected world map where the region
+             bounded by the longitude and latitude values is highlighted
              with a red hatched rectangle. Prompts user confirmation.
 
     Returns:
-        bool: True if user confirms region is correct (inputs 'Y' or 'y'), 
+        bool: True if user confirms region is correct (inputs 'Y' or 'y'),
               False otherwise.
     """
     # Range checks
@@ -110,8 +117,8 @@ def show_region_on_map(lat_s, lat_n, lon_w, lon_e):
     ax = plt.axes(projection=ccrs.PlateCarree())
     ax.set_global()
 
-    ax.add_feature(cfeature.LAND.with_scale('110m'), facecolor='lightgreen')
-    ax.add_feature(cfeature.OCEAN.with_scale('110m'), facecolor='lightblue')
+    ax.add_feature(cfeature.LAND.with_scale("110m"), facecolor="lightgreen")
+    ax.add_feature(cfeature.OCEAN.with_scale("110m"), facecolor="lightblue")
     ax.coastlines()
 
     rect = Rectangle(
@@ -119,32 +126,35 @@ def show_region_on_map(lat_s, lat_n, lon_w, lon_e):
         width=(lon_e - lon_w),
         height=(lat_n - lat_s),
         linewidth=2,
-        edgecolor='r',
-        facecolor='none',
-        hatch='//',
-        transform=ccrs.PlateCarree()  # Ensure alignment with map projection
+        edgecolor="r",
+        facecolor="none",
+        hatch="//",
+        transform=ccrs.PlateCarree(),  # Ensure alignment with map projection
     )
     ax.add_patch(rect)
 
     plt.title("World Map with Subset Box (red)")
     plt.show(block=False)
 
-    confirm = input("Confirm highlighted region to start downsizing--(Y/N): ").strip().lower()
-    return confirm.startswith('y')
+    confirm = (
+        input("Confirm highlighted region to start downsizing--(Y/N): ").strip().lower()
+    )
+    return confirm.startswith("y")
+
 
 def extract_date_from_filename(filename):
     """
-    REQUIRES: 
-        filename is a string containing an 8-digit date in the format 'YYYYMMDD', 
+    REQUIRES:
+        filename is a string containing an 8-digit date in the format 'YYYYMMDD',
         surrounded by underscores (e.g. 'data_20241127_file.grib2')
-    
-    MODIFIES: 
+
+    MODIFIES:
         None
 
-    EFFECTS: 
-        Searches the given filename for a date string in 'YYYYMMDD' format 
-        surrounded by underscores. If found and valid, converts it to a 
-        datetime.datetime object and returns it. 
+    EFFECTS:
+        Searches the given filename for a date string in 'YYYYMMDD' format
+        surrounded by underscores. If found and valid, converts it to a
+        datetime.datetime object and returns it.
         If no date is found or the date string is invalid, returns None.
 
     Returns:
@@ -158,7 +168,8 @@ def extract_date_from_filename(filename):
         return dt.datetime.strptime(date_str, "%Y%m%d")
     except ValueError:
         return None
-    
+
+
 def extract_forecast_hour_from_filename(filename):
     """
     REQUIRES:
@@ -184,7 +195,7 @@ def extract_forecast_hour_from_filename(filename):
     except ValueError:
         return None
 
-    
+
 def process_single_grib(input_file, output_file, LAT_S, LAT_N, LON_W, LON_E):
     """
     REQUIRES:
@@ -202,10 +213,10 @@ def process_single_grib(input_file, output_file, LAT_S, LAT_N, LON_W, LON_E):
     EFFECTS:
         - Opens the GRIB file at input_file.
         - Identifies the available variable shortNames.
-        - Subsets the data for each desired variable listed in the global SHORTNAMES list within the specified 
+        - Subsets the data for each desired variable listed in the global SHORTNAMES list within the specified
           lat/lon bounding box.
         - Adjusts longitude ranges if the GRIB file uses a 0-360 longitude convention.
-        - Extracts and saves the subsetted variables, along with the corresponding latitude and longitude 
+        - Extracts and saves the subsetted variables, along with the corresponding latitude and longitude
           coordinate arrays, into a NetCDF file.
         - Logs progress and warnings to the console.
 
@@ -224,22 +235,22 @@ def process_single_grib(input_file, output_file, LAT_S, LAT_N, LON_W, LON_E):
 
     # Convert to a sorted list and log
     logger.debug(sorted(shortnames))
-    
+
     # Dictionary to store the subset data for each variable
     var_data = {}
     var_units = {}
-    var_levels = {} # for swell data with multiple levels
+    var_levels = {}  # for swell data with multiple levels
 
     sample_msg = grbs.message(1)
 
     # Check both first and last grid point longitudes of FILE
-        # 2 conventions to represent longitudes
-            # 1. Set Prime Meridian as 0°, longitude WEST of PM is negative (-180° to 0°), and longitude EAST of PM is positive (0° to 180°)
-            # 2. Set Prime meridian as 0°, longitude measured EASTWARD is (0° to 360°)
-    lo_first = sample_msg['longitudeOfFirstGridPointInDegrees']
-    lo_last = sample_msg['longitudeOfLastGridPointInDegrees']
-    use_360 = (lo_first is not None and lo_last is not None and lo_last > 180)
-    
+    # 2 conventions to represent longitudes
+    # 1. Set Prime Meridian as 0°, longitude WEST of PM is negative (-180° to 0°), and longitude EAST of PM is positive (0° to 180°)
+    # 2. Set Prime meridian as 0°, longitude measured EASTWARD is (0° to 360°)
+    lo_first = sample_msg["longitudeOfFirstGridPointInDegrees"]
+    lo_last = sample_msg["longitudeOfLastGridPointInDegrees"]
+    use_360 = lo_first is not None and lo_last is not None and lo_last > 180
+
     # If GRIB2 file uses 0 to 360 convention, make sure to change the longitude values accordingly
     if use_360:
         logger.debug("File uses 0-360 for longitudes.")
@@ -262,42 +273,62 @@ def process_single_grib(input_file, output_file, LAT_S, LAT_N, LON_W, LON_E):
 
             for msg in msgs:
                 try:
-                    data, lats, lons = msg.data(lat1=LAT_S, lat2=LAT_N, lon1=LON_W, lon2=LON_E)
+                    data, lats, lons = msg.data(
+                        lat1=LAT_S, lat2=LAT_N, lon1=LON_W, lon2=LON_E
+                    )
                     if data.size == 0:
-                        logger.warning(f"Empty data for {sname} at level {msg.level} in {input_file}")
+                        logger.warning(
+                            f"Empty data for {sname} at level {msg.level} in {input_file}"
+                        )
                         continue
                     data_layers.append(data.astype(np.float32))
-                    levels.append(msg.level if "level" in msg.keys() else len(data_layers)-1)
+                    levels.append(
+                        msg.level if "level" in msg.keys() else len(data_layers) - 1
+                    )
                 except Exception as e:
-                    logger.warning(f"Error extracting {sname} level {getattr(msg, 'level', 'unknown')}: {e}")
+                    logger.warning(
+                        f"Error extracting {sname} level {getattr(msg, 'level', 'unknown')}: {e}"
+                    )
 
             if len(data_layers) == 0:
                 logger.warning(f"No valid data found for {sname} in {input_file}")
             elif len(data_layers) == 1:
                 var_data[sname] = data_layers[0]  # shape = (lat, lon)
-                logger.debug(f"Extracted {sname}: shape {data_layers[0].shape} (single layer)")
+                logger.debug(
+                    f"Extracted {sname}: shape {data_layers[0].shape} (single layer)"
+                )
             else:
-                var_data[sname] = np.stack(data_layers, axis=0)  # shape = (layers, lat, lon)
+                var_data[sname] = np.stack(
+                    data_layers, axis=0
+                )  # shape = (layers, lat, lon)
                 var_levels[sname] = levels
-                logger.debug(f"Extracted {sname}: shape {var_data[sname].shape}, levels = {levels}")
+                logger.debug(
+                    f"Extracted {sname}: shape {var_data[sname].shape}, levels = {levels}"
+                )
 
             # also get the unit no matter the number of levels
             var_units[sname] = msg.units or "unknown"
             logger.debug(f"Extracted {sname}: shape {data.shape}")
         except Exception as e:
-            logger.warning(f"Warning: Could not extract {sname} from {input_file} ({e}).")
-    
+            logger.warning(
+                f"Warning: Could not extract {sname} from {input_file} ({e})."
+            )
+
     # If no data was extracted, skip file.
     if not var_data:
-        logger.warning(f"No matching variables extracted from {input_file}. Skipping NetCDF creation.")
+        logger.warning(
+            f"No matching variables extracted from {input_file}. Skipping NetCDF creation."
+        )
         grbs.close()
         return
 
     # Extract latitude and longitude arrays from one of the variables.
     # Assume that all variables have the same grid.
     sample_msg = grbs.select(shortName=SHORTNAMES[0])[0]
-    _, full_lats, full_lons = sample_msg.data(lat1=LAT_S, lat2=LAT_N, lon1=LON_W, lon2=LON_E)
-    
+    _, full_lats, full_lons = sample_msg.data(
+        lat1=LAT_S, lat2=LAT_N, lon1=LON_W, lon2=LON_E
+    )
+
     grbs.close()
 
     # For many GRIB files on a regular grid, the latitudes and longitudes
@@ -307,7 +338,7 @@ def process_single_grib(input_file, output_file, LAT_S, LAT_N, LON_W, LON_E):
     lon_1d = full_lons[0, :]
 
     # Create a NetCDF file and define dimensions.
-    nc_out = Dataset(output_file, 'w')
+    nc_out = Dataset(output_file, "w")
     nc_out.title = f"Subset of {os.path.basename(input_file)}"
     nc_out.descriptions = (
         f"Subset extracted from {os.path.basename(input_file)}.\n"
@@ -318,30 +349,45 @@ def process_single_grib(input_file, output_file, LAT_S, LAT_N, LON_W, LON_E):
     nc_out.lat_max = LAT_N
     nc_out.lon_min = LON_W
     nc_out.lon_max = LON_E
-    
+
     shape = var_data[SHORTNAMES[0]].shape
     if len(shape) == 2:
         nlat, nlon = shape  # (nlat, nlon)
     else:
         _, nlat, nlon = shape  # (levels, nlat, nlon), we discard the first dimension
-    nc_out.createDimension('lat', nlat)
-    nc_out.createDimension('lon', nlon)
-    nc_out.createDimension('level', 3)
+    nc_out.createDimension("lat", nlat)
+    nc_out.createDimension("lon", nlon)
+    nc_out.createDimension("level", 3)
 
     # Create coordinate variables for latitude and longitude
-    lat_nc = nc_out.createVariable('lat', 'f4', ('lat',))
-    lon_nc = nc_out.createVariable('lon', 'f4', ('lon',))
-    lat_nc.units = 'degrees_north'
-    lon_nc.units = 'degrees_east'
+    lat_nc = nc_out.createVariable("lat", "f4", ("lat",))
+    lon_nc = nc_out.createVariable("lon", "f4", ("lon",))
+    lat_nc.units = "degrees_north"
+    lon_nc.units = "degrees_east"
     lat_nc[:] = lat_1d
     lon_nc[:] = lon_1d
 
     # Create a variable for each extracted shortName
     for sname, data in var_data.items():
         if data.ndim == 3:
-            var_nc = nc_out.createVariable(sname, 'f4', ('level','lat', 'lon',))
+            var_nc = nc_out.createVariable(
+                sname,
+                "f4",
+                (
+                    "level",
+                    "lat",
+                    "lon",
+                ),
+            )
         elif data.ndim == 2:
-            var_nc = nc_out.createVariable(sname, 'f4', ('lat', 'lon',))
+            var_nc = nc_out.createVariable(
+                sname,
+                "f4",
+                (
+                    "lat",
+                    "lon",
+                ),
+            )
         var_nc.units = var_units.get(sname, "unknown")
         var_nc[:] = data
 
@@ -362,11 +408,22 @@ def process_single_grib(input_file, output_file, LAT_S, LAT_N, LON_W, LON_E):
     # Optional: store as global attribute too
     nc_out.valid_time = valid_time.strftime("%Y-%m-%d %H:%M:%S")
 
-
     nc_out.close()
     logger.debug(f"Saved subset NetCDF to {output_file}")
 
-def process_grib_directory(start_date_str, end_date_str, lat_s, lat_n, lon_w, lon_e, forecast_hrz, timestep, input_dir, output_dir):
+
+def process_grib_directory(
+    start_date_str,
+    end_date_str,
+    lat_s,
+    lat_n,
+    lon_w,
+    lon_e,
+    forecast_hrz,
+    timestep,
+    input_dir,
+    output_dir,
+):
     """
     Requires:
         - start_date_str and end_date_str must be in the format "%Y%m%d" (e.g., "20250101").
@@ -375,7 +432,7 @@ def process_grib_directory(start_date_str, end_date_str, lat_s, lat_n, lon_w, lo
         - input_dir must be a valid path containing .grib2 files named in a consistent format
           with extractable date and forecast hour (as required by extract_date_from_filename and extract_forecast_hour_from_filename).
         - extract_date_from_filename and extract_forecast_hour_from_filename must be defined and return valid results for the files.
-    
+
     Modifies:
         - The file system: may create output_dir and write .nc files into it.
         - May log warnings/info/debug messages via the logger.
@@ -392,12 +449,14 @@ def process_grib_directory(start_date_str, end_date_str, lat_s, lat_n, lon_w, lo
     # Convert start and end date to actual dates
     start_date = dt.datetime.strptime(start_date_str, "%Y%m%d")
     end_date = dt.datetime.strptime(end_date_str, "%Y%m%d")
-    
+
     # Make sure output directory exist (if did not exist, create it anew)
     os.makedirs(output_dir, exist_ok=True)
     if timestep > forecast_hrz:
-        logger.warning("Warning: TIMESTEP is greater than FORECAST_HORIZON. Therefore will not be forecast data.")
-    
+        logger.warning(
+            "Warning: TIMESTEP is greater than FORECAST_HORIZON. Therefore will not be forecast data."
+        )
+
     # 1) Confirm bounding box
     if not show_region_on_map(lat_s, lat_n, lon_w, lon_e):
         logger.warning("Region not confirmed. Exiting.")
@@ -408,7 +467,7 @@ def process_grib_directory(start_date_str, end_date_str, lat_s, lat_n, lon_w, lo
     # 2) Find all GRIB2 files in INPUT_DIR
     logger.info(f"Finding all the .grib2 files in directory {input_dir}")
     grib_files = sorted(glob.glob(os.path.join(input_dir, "*.grib2")))
-    #? Try to use a range of possible dates? so don't process everything at once? like every 4 days/
+    # ? Try to use a range of possible dates? so don't process everything at once? like every 4 days/
 
     # 3) Process each file
     total_files = len(grib_files)
@@ -428,7 +487,7 @@ def process_grib_directory(start_date_str, end_date_str, lat_s, lat_n, lon_w, lo
         if file_date is None:
             logger.warning(f"Skipping file (date not found): {filename}")
             continue
-        
+
         # Check if file has forecast hour within forecast horizon
         file_forecast_hour = extract_forecast_hour_from_filename(filename)
         if file_forecast_hour is None:
@@ -452,7 +511,7 @@ def process_grib_directory(start_date_str, end_date_str, lat_s, lat_n, lon_w, lo
 
     print("\n\n")
     logger.info(f"Done! Subset files written to: {output_dir}\n")
-        
+
 
 def main():
     INPUT_DIR = "/home/remecca/core/linked_gribs"
@@ -469,7 +528,6 @@ def main():
     FORECAST_HRZ = 350
     TIMESTEP = 9
 
-
     # Extract MMDD from dates
     start_mmdd = START_DATE[4:]
     end_mmdd = END_DATE[4:]
@@ -480,9 +538,19 @@ def main():
     OUTPUT_DIR = os.path.join(base_dir, dir_suffix)
 
     # Call process_single_grib function with the input file and other parameters
-    process_grib_directory(START_DATE, END_DATE, LAT_S, LAT_N, LON_W, LON_E, FORECAST_HRZ, TIMESTEP, INPUT_DIR, OUTPUT_DIR)
+    process_grib_directory(
+        START_DATE,
+        END_DATE,
+        LAT_S,
+        LAT_N,
+        LON_W,
+        LON_E,
+        FORECAST_HRZ,
+        TIMESTEP,
+        INPUT_DIR,
+        OUTPUT_DIR,
+    )
 
-    
 
 # Standard Python pattern:
 if __name__ == "__main__":

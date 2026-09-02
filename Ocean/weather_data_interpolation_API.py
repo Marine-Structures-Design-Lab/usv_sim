@@ -3,17 +3,17 @@ from netCDF4 import Dataset
 import numpy as np
 from datetime import datetime, timedelta
 import logging
-from Ocean.weather_utils import update_fcst_time, get_file_list,  extract_value
+from Ocean.weather_utils import update_fcst_time, get_file_list, extract_value
 
 # ---------- LOGGING SETUP ----------
-#logging.basicConfig(
+# logging.basicConfig(
 #   level=logging.info,
 #   format='%(asctime)s - %(levelname)s - %(message)s'
-#)
+# )
 logger = logging.getLogger(__name__)
 
 _planning_cache = {}
-_nowcast_cache={}
+_nowcast_cache = {}
 # --- CONFIG ---
 INPUT_DIR = "Ocean/tests/weather_2_nc/1201_1210_lat10_lon10_fc50_ts9"
 CURRENT_DT = datetime(2024, 12, 1, 6)
@@ -22,15 +22,16 @@ TARGET_LAT = 51.3
 TARGET_LON = 221.3
 VARIABLE_NAME = "wdir"
 
+
 # --- HELPER FUNCTIONS ---
 def get_file_metadata(file_list):
     """
-    Requires: 
+    Requires:
         - file_list: a list of NetCDF file paths with naming format
                      'prefix1_prefix2_YYYYMMDD_HH_FFF.nc'
     Modifies: None.
     Effects:
-        - extracts issue_datetime and forecast_datetime from files name,         
+        - extracts issue_datetime and forecast_datetime from files name,
         - logs skipped files if parsing fails, and
         - Returns: List of tuples: (file_path, issue_datetime, forecast_datetime)
     """
@@ -43,6 +44,7 @@ def get_file_metadata(file_list):
         except Exception as e:
             logger.warning(f"Skipping file {f}: {e}")
     return metadata
+
 
 def filter_files_by_issue_time(metadata, current_dt):
     """
@@ -57,14 +59,21 @@ def filter_files_by_issue_time(metadata, current_dt):
     """
     # Find the last 6-hour interval before or equal to current_dt
     last_6hr_hour = (current_dt.hour // 6) * 6
-    last_issue_time = current_dt.replace(hour=last_6hr_hour, minute=0, second=0, microsecond=0)
+    last_issue_time = current_dt.replace(
+        hour=last_6hr_hour, minute=0, second=0, microsecond=0
+    )
 
     # If the replacement rolled the time forward (possible on day boundaries), adjust date back
     if last_6hr_hour > current_dt.hour:
         last_issue_time -= timedelta(hours=6)
-    filtered = [entry for entry in metadata if entry[1] == last_issue_time] # entry[1] = issue_dt
-    logger.debug(f"Filtered metadata to {len(filtered)} entries for last issue time = {last_issue_time}")
+    filtered = [
+        entry for entry in metadata if entry[1] == last_issue_time
+    ]  # entry[1] = issue_dt
+    logger.debug(
+        f"Filtered metadata to {len(filtered)} entries for last issue time = {last_issue_time}"
+    )
     return filtered
+
 
 def find_time_bounds(filtered_metadata, fcst_dt):
     """
@@ -78,7 +87,7 @@ def find_time_bounds(filtered_metadata, fcst_dt):
         - Raises ValueError if no bounding pair found
     """
     sorted_meta = sorted(filtered_metadata, key=lambda x: x[2])  # x[2] = fcst_dt
-    
+
     for entry in sorted_meta:
         if entry[2] == fcst_dt:
             logger.debug(f"Exact match found for fcst_dt={fcst_dt}")
@@ -90,9 +99,12 @@ def find_time_bounds(filtered_metadata, fcst_dt):
             logger.debug(f"Found time bounds: {t1} -- {fcst_dt} -- {t2}")
             return sorted_meta[i], sorted_meta[i + 1]
 
-    raise ValueError(f"⚠️ No bounding forecast times found for interpolation. "
-                 f"Tried to interpolate for fcst_dt={fcst_dt}, "
-                 f"but available times were: {[entry[2] for entry in sorted_meta]}")
+    raise ValueError(
+        f"⚠️ No bounding forecast times found for interpolation. "
+        f"Tried to interpolate for fcst_dt={fcst_dt}, "
+        f"but available times were: {[entry[2] for entry in sorted_meta]}"
+    )
+
 
 def get_surrounding_indices(array, value):
     """
@@ -109,7 +121,9 @@ def get_surrounding_indices(array, value):
     if len(array) < 2:
         raise ValueError("Array must contain at least two elements to interpolate.")
     if value < array[0] or value > array[-1]:
-        raise ValueError(f"Value {value} out of bounds of array [{array[0]}, {array[-1]}]")
+        raise ValueError(
+            f"Value {value} out of bounds of array [{array[0]}, {array[-1]}]"
+        )
 
     idx = np.searchsorted(array, value)
 
@@ -119,6 +133,7 @@ def get_surrounding_indices(array, value):
         return len(array) - 2, len(array) - 1
     else:
         return idx - 1, idx
+
 
 def extract_value(data, lat_idx, lon_idx):
     """
@@ -135,6 +150,7 @@ def extract_value(data, lat_idx, lon_idx):
         return np.nan
     logger.debug(f"value at ({lat_idx}, {lon_idx}) = {value:.3f}")
     return value
+
 
 def get_spatial_weights(lats, lons, target_lat, target_lon):
     """
@@ -153,10 +169,12 @@ def get_spatial_weights(lats, lons, target_lat, target_lon):
     i1, i2 = get_surrounding_indices(lats, target_lat)
     j1, j2 = get_surrounding_indices(lons, target_lon)
 
-    logger.debug(f"lat @ lats[{i1}] = {lats[i1]:.2f} \n\t\t\t\t"
-                f"lat @ lats[{i2}] = {lats[i2]:.2f} \n\t\t\t\t"
-                f"lon @ lons[{j1}] = {lons[j1]:.2f} \n\t\t\t\t"
-                f"lon @ lons[{j2}] = {lons[j2]:.2f}")
+    logger.debug(
+        f"lat @ lats[{i1}] = {lats[i1]:.2f} \n\t\t\t\t"
+        f"lat @ lats[{i2}] = {lats[i2]:.2f} \n\t\t\t\t"
+        f"lon @ lons[{j1}] = {lons[j1]:.2f} \n\t\t\t\t"
+        f"lon @ lons[{j2}] = {lons[j2]:.2f}"
+    )
 
     dlat = lats[i2] - lats[i1]
     dlon = lons[j2] - lons[j1]
@@ -179,7 +197,9 @@ def get_spatial_weights(lats, lons, target_lat, target_lon):
         weights = [0.0 for _ in weights]
 
     logger.debug(f"The corners are {[(int(i), int(j)) for (i, j) in corners]}")
-    logger.debug(f"The corresponding weights are {[f'{float(weight):.3f}' for weight in weights]}")
+    logger.debug(
+        f"The corresponding weights are {[f'{float(weight):.3f}' for weight in weights]}"
+    )
     logger.debug(f"Totalling to {sum(weights)}")
     return corners, weights
 
@@ -216,7 +236,10 @@ def interpolate_spatial_value(data, corners, weights):
         logger.warning("All values masked at this location — returning np.nan")
         return np.nan
 
-def interpolate_all_variables(ds, variable_names, t1, t2, lats, lons, time_scale, target_lat, target_lon):
+
+def interpolate_all_variables(
+    ds, variable_names, t1, t2, lats, lons, time_scale, target_lat, target_lon
+):
     """
     Interpolates variables in a combined xarray dataset along space and time.
 
@@ -265,6 +288,8 @@ def interpolate_all_variables(ds, variable_names, t1, t2, lats, lons, time_scale
         results[var] = (final_val, unit)
 
     return results
+
+
 # --- MAIN INTERPOLATION ---
 def get_variable_unit(file_path, variable_name):
     """
@@ -278,9 +303,10 @@ def get_variable_unit(file_path, variable_name):
     with Dataset(file_path) as ds:
         return getattr(ds.variables[variable_name], "units", "unknown")
 
+
 def planning_interpolation(ds, current_dt, fcst_dt, target_lat, target_lon):
     """
-    Interpolates all valid variables at a given (lat, lon) and  fcst date starting 
+    Interpolates all valid variables at a given (lat, lon) and  fcst date starting
     from the current date.
     -------------------------------------------------------------------------------
      Parameters
@@ -294,30 +320,32 @@ def planning_interpolation(ds, current_dt, fcst_dt, target_lat, target_lon):
     Returns
     ---------------------------------------------------------------------
      a dictionary of {variable_name: interpolated_value}.
-    
+
     """
 
     if target_lon < 0:
         target_lon += 360
 
-    fcst_dt=fcst_dt.replace(minute=0, second=0, microsecond=0)
-    while fcst_dt.hour %6 !=0:
-             fcst_dt=fcst_dt - timedelta(hours=1)
+    fcst_dt = fcst_dt.replace(minute=0, second=0, microsecond=0)
+    while fcst_dt.hour % 6 != 0:
+        fcst_dt = fcst_dt - timedelta(hours=1)
     key = (
         current_dt.replace(minute=0, second=0, microsecond=0),
         fcst_dt.replace(minute=0, second=0, microsecond=0),
         round(target_lat, 1),
-        round(target_lon, 1)
+        round(target_lon, 1),
     )
 
     if key in _planning_cache:
         return _planning_cache[key]
 
     time_var = "time" if "time" in ds.dims else "forecast_time"
-   
+
     if time_var not in ds.dims or ds[time_var].size == 0:
-     logger.error(f"Dataset has no valid time dimension ('{time_var}') after concatenation.")
-     return {}
+        logger.error(
+            f"Dataset has no valid time dimension ('{time_var}') after concatenation."
+        )
+        return {}
 
     all_times = ds[time_var].values
     fcst_time64 = np.datetime64(fcst_dt)
@@ -333,7 +361,9 @@ def planning_interpolation(ds, current_dt, fcst_dt, target_lat, target_lon):
     t1 = times_before[-1].tolist()
     t2 = times_after[0].tolist()
 
-    time_scale = 0 if t2 == t1 else (fcst_dt - t1).total_seconds() / (t2 - t1).total_seconds()
+    time_scale = (
+        0 if t2 == t1 else (fcst_dt - t1).total_seconds() / (t2 - t1).total_seconds()
+    )
     logger.debug(f"t1 = {t1}, t2 = {t2}, time scale = {time_scale:.3f}")
 
     lats = ds["lat"].values
@@ -343,12 +373,17 @@ def planning_interpolation(ds, current_dt, fcst_dt, target_lat, target_lon):
     if lons[0] > lons[-1]:
         lons = lons[::-1]
 
-    variable_names = [v for v in ds.data_vars if v not in ("lat", "lon", "time", "forecast_time")]
+    variable_names = [
+        v for v in ds.data_vars if v not in ("lat", "lon", "time", "forecast_time")
+    ]
 
-    interpolation = interpolate_all_variables(ds,variable_names, t1, t2, lats, lons, time_scale, target_lat, target_lon)
+    interpolation = interpolate_all_variables(
+        ds, variable_names, t1, t2, lats, lons, time_scale, target_lat, target_lon
+    )
 
     _planning_cache[key] = interpolation
     return interpolation
+
 
 def nowcast_interpolation(input_dir, fcst_dt, target_lat, target_lon):
     """
@@ -365,12 +400,14 @@ def nowcast_interpolation(input_dir, fcst_dt, target_lat, target_lon):
     if target_lon < 0:
         target_lon += 360
 
-    logger.info(f"Starting nowcast interpolation at ({target_lat}, {target_lon}) for {fcst_dt}")
+    logger.info(
+        f"Starting nowcast interpolation at ({target_lat}, {target_lon}) for {fcst_dt}"
+    )
     key = (
         input_dir,
         fcst_dt.replace(minute=0, second=0, microsecond=0),
         round(target_lat, 1),
-        round(target_lon, 1)
+        round(target_lon, 1),
     )
     if key in _nowcast_cache:
         return key
@@ -383,7 +420,9 @@ def nowcast_interpolation(input_dir, fcst_dt, target_lat, target_lon):
     file_metadata = get_file_metadata(file_list)
 
     # Only keep nowcast files: where issue_time == forecast_time
-    nowcast_metadata = [(f, issue, fcst) for (f, issue, fcst) in file_metadata if issue == fcst]
+    nowcast_metadata = [
+        (f, issue, fcst) for (f, issue, fcst) in file_metadata if issue == fcst
+    ]
 
     if not nowcast_metadata:
         logger.error("No nowcast files (issue_time == forecast_time) found.")
@@ -393,22 +432,39 @@ def nowcast_interpolation(input_dir, fcst_dt, target_lat, target_lon):
     dt_before, dt_after = find_time_bounds(nowcast_metadata, fcst_dt)
 
     t1, t2 = dt_before[1], dt_after[1]
-    time_scale = ((fcst_dt - t1).total_seconds() /(t2 - t1).total_seconds())
-    logger.info(f"t1 = {t1},\n\t\t\t\t t2 = {t2},\n\t\t\t\t time scale for t2 = {time_scale:.3f}")
+    time_scale = (fcst_dt - t1).total_seconds() / (t2 - t1).total_seconds()
+    logger.info(
+        f"t1 = {t1},\n\t\t\t\t t2 = {t2},\n\t\t\t\t time scale for t2 = {time_scale:.3f}"
+    )
 
     with Dataset(dt_before[0]) as ds:
         variable_names = [
-            v for v in ds.variables
-            if ds.variables[v].ndim >= 2 and v not in ("lat", "lon", "time", "forecast_time")
+            v
+            for v in ds.variables
+            if ds.variables[v].ndim >= 2
+            and v not in ("lat", "lon", "time", "forecast_time")
         ]
         lats = ds.variables["lat"][:]
         lons = ds.variables["lon"][:]
 
-    if lats[0] > lats[-1]: lats = lats[::-1]
-    if lons[0] > lons[-1]: lons = lons[::-1]
-    interpolation=interpolate_all_variables(variable_names, dt_before, dt_after, lats, lons, time_scale, target_lat, target_lon)
-    _nowcast_cache[key]=interpolation
+    if lats[0] > lats[-1]:
+        lats = lats[::-1]
+    if lons[0] > lons[-1]:
+        lons = lons[::-1]
+    interpolation = interpolate_all_variables(
+        variable_names,
+        dt_before,
+        dt_after,
+        lats,
+        lons,
+        time_scale,
+        target_lat,
+        target_lon,
+    )
+    _nowcast_cache[key] = interpolation
     return interpolation
+
+
 def load_netcdf_folder(folder_path):
     """
     Loads NetCDF files from a directory efficiently, adds a synthetic time dimension
@@ -426,11 +482,13 @@ def load_netcdf_folder(folder_path):
     logger = logging.getLogger(__name__)
 
     # --- Step 0: Collect all .nc files ---
-    nc_files = sorted([
-        os.path.join(folder_path, f)
-        for f in os.listdir(folder_path)
-        if f.endswith(".nc")
-    ])
+    nc_files = sorted(
+        [
+            os.path.join(folder_path, f)
+            for f in os.listdir(folder_path)
+            if f.endswith(".nc")
+        ]
+    )
     if not nc_files:
         raise FileNotFoundError(f"No NetCDF files found in {folder_path}")
 
@@ -441,21 +499,23 @@ def load_netcdf_folder(folder_path):
 
     issue_datetimes = sorted(set(entry[1] for entry in metadata))
     forecast_datetimes = sorted(set(entry[2] for entry in metadata))
-    logger.debug(f"Found {len(issue_datetimes)} issue times and {len(forecast_datetimes)} forecast times.")
+    logger.debug(
+        f"Found {len(issue_datetimes)} issue times and {len(forecast_datetimes)} forecast times."
+    )
 
     # --- Step 2: Define preprocess function to add synthetic 'time' dim ---
     def preprocess_add_time(ds):
-     file_path = ds.encoding.get("source")
-     if file_path is None:
-        raise RuntimeError("Cannot determine source file for dataset")
+        file_path = ds.encoding.get("source")
+        if file_path is None:
+            raise RuntimeError("Cannot determine source file for dataset")
 
-     entry = next(e for e in metadata if e[0] == file_path)
-     fcst_dt = entry[2]
+        entry = next(e for e in metadata if e[0] == file_path)
+        fcst_dt = entry[2]
 
-     if "time" not in ds.dims:
-        ds = ds.expand_dims({"time": [np.datetime64(fcst_dt)]})
+        if "time" not in ds.dims:
+            ds = ds.expand_dims({"time": [np.datetime64(fcst_dt)]})
 
-     return ds
+        return ds
 
     # --- Step 3: Open all datasets efficiently using preprocess ---
     try:
@@ -465,7 +525,7 @@ def load_netcdf_folder(folder_path):
             combine="by_coords",
             mask_and_scale=False,
             engine="netcdf4",
-            parallel=False
+            parallel=False,
         )
     except Exception as e:
         # Fallback to manual concatenation if open_mfdataset fails
@@ -483,15 +543,20 @@ def load_netcdf_folder(folder_path):
         combined_ds = xr.concat(datasets, dim="time")
 
     logger.debug(f"Dataset combined successfully from {len(nc_files)} files.")
-    combined_ds=combined_ds.drop_duplicates("time")
+    combined_ds = combined_ds.drop_duplicates("time")
     combined_ds = combined_ds.sortby("time")
     return combined_ds, issue_datetimes, forecast_datetimes
 
+
 # --- MAIN DRIVER ---
 def main():
-    results = planning_interpolation(INPUT_DIR, CURRENT_DT, FCST_DT, TARGET_LAT, TARGET_LON)
-    print(f"\nInterpolated values at ({TARGET_LAT}, {TARGET_LON}) @ {FCST_DT} with issued info at/before {CURRENT_DT}:")
-    
+    results = planning_interpolation(
+        INPUT_DIR, CURRENT_DT, FCST_DT, TARGET_LAT, TARGET_LON
+    )
+    print(
+        f"\nInterpolated values at ({TARGET_LAT}, {TARGET_LON}) @ {FCST_DT} with issued info at/before {CURRENT_DT}:"
+    )
+
     # results = nowcast_interpolation(INPUT_DIR, FCST_DT, TARGET_LAT, TARGET_LON)
     # print(f"\nInterpolated values at ({TARGET_LAT}, {TARGET_LON}) @ {FCST_DT}:")
     for var, (val, unit) in results.items():

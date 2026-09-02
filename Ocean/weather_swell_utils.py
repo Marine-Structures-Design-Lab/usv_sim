@@ -3,10 +3,10 @@ import logging
 
 # ---------- LOGGING ----------
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+
 
 # ---------- NORMALIZATION ----------
 def normalized_direction_difference(theta1_deg, theta2_deg):
@@ -27,6 +27,8 @@ def normalized_direction_difference(theta1_deg, theta2_deg):
     RETURNS:
         - float: normalized direction difference between theta1 and theta2, in [0, 1].
     """
+
+
 def normalized_height_difference(h1, h2, max_height=6.0):
     """
     REQUIRES:
@@ -44,6 +46,8 @@ def normalized_height_difference(h1, h2, max_height=6.0):
     RETURNS:
         - float: normalized wave height difference between h1 and h2.
     """
+
+
 def normalized_period_difference(p1, p2, max_period=20.0):
     """
     REQUIRES:
@@ -63,7 +67,6 @@ def normalized_period_difference(p1, p2, max_period=20.0):
     """
 
 
-
 def main():
     # given 2 points P1 and P2
     # calculate distance metric for each of the swells (3x3 matrix)
@@ -77,4 +80,3 @@ def main():
     # use Hungarian Algorithm (OR other matching algorithm to determine matching swells)
     # special case when one swell is changed from a level to the next...
     # return matching pairs ex. [(0, 0), (1, 2), (2, 1)]
-

@@ -2,7 +2,7 @@ import sys
 import os
 import netCDF4
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from Ocean import weather_data_downsizer as downsizer
 
 
@@ -52,4 +52,15 @@ base_dir = os.path.expanduser("~/Documents/MSDL/core/Ocean/tests/weather_2_nc")
 OUTPUT_DIR = os.path.join(base_dir, dir_suffix)
 
 # Call process_single_grib function with the input file and other parameters
-downsizer.process_grib_directory(START_DATE, END_DATE, LAT_S, LAT_N, LON_W, LON_E, FORECAST_HRZ, TIMESTEP, INPUT_DIR, OUTPUT_DIR)
+downsizer.process_grib_directory(
+    START_DATE,
+    END_DATE,
+    LAT_S,
+    LAT_N,
+    LON_W,
+    LON_E,
+    FORECAST_HRZ,
+    TIMESTEP,
+    INPUT_DIR,
+    OUTPUT_DIR,
+)

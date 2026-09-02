@@ -12,7 +12,7 @@ fig = plt.figure()
 # each month in 2018, however these files can easily be switched out
 # to instead plot a different parameter and/or date range. The only
 # requirement is that the location of the files does not change
-directory = './Ocean/2018_global_data'
+directory = "./Ocean/2018_global_data"
 
 # .png generation
 for filename in sorted(os.listdir(directory)):
@@ -29,46 +29,52 @@ for filename in sorted(os.listdir(directory)):
     for g in g_list:
         data, lats, lons = g.data()
         ax = plt.axes(projection=ccrs.Mercator())
-        plt.pcolormesh(lons, lats, data, cmap='gist_ncar',
-                       transform=ccrs.PlateCarree())
+        plt.pcolormesh(lons, lats, data, cmap="gist_ncar", transform=ccrs.PlateCarree())
         cbar = plt.colorbar()
-        cbar.set_label(g.shortName + ' (' + g.units + ')')
+        cbar.set_label(g.shortName + " (" + g.units + ")")
         ax.add_feature(cfeature.LAND)
         ax.coastlines()
         gl = ax.gridlines(draw_labels=True)
         gl.top_labels = False
         gl.right_labels = False
-        plt.title(g.name + '\n' + 'Valid Date: ' +
-                  g.validDate.strftime('%m/%d/%Y'))
-        f = './Ocean/global_{num}.png'.format(num=g.validDate.strftime('%m%d'))
+        plt.title(g.name + "\n" + "Valid Date: " + g.validDate.strftime("%m/%d/%Y"))
+        f = "./Ocean/global_{num}.png".format(num=g.validDate.strftime("%m%d"))
         plt.savefig(f)
         fig.clear()
         if i < 10:
-            print('Created drawing  {num} of {total} for month '
-                  .format(num=i, total=len(g_list)) +
-                  g.validDate.strftime('%m/%Y'), end='\r')
+            print(
+                "Created drawing  {num} of {total} for month ".format(
+                    num=i, total=len(g_list)
+                )
+                + g.validDate.strftime("%m/%Y"),
+                end="\r",
+            )
         else:
-            print('Created drawing {num} of {total} for month '
-                  .format(num=i, total=len(g_list)) +
-                  g.validDate.strftime('%m/%Y'), end='\r')
+            print(
+                "Created drawing {num} of {total} for month ".format(
+                    num=i, total=len(g_list)
+                )
+                + g.validDate.strftime("%m/%Y"),
+                end="\r",
+            )
         i += 1
     grib_file.close()
 
-directory = './Ocean'
+directory = "./Ocean"
 map_images = []
 print()
 
 # Encoded author file generation
 for filename in sorted(os.listdir(directory)):
-    if filename.endswith('.png'):
+    if filename.endswith(".png"):
         f = os.path.join(directory, filename)
         img = mgimg.imread(f)
         imgplot = plt.imshow(img)
         map_images.append([imgplot])
-        print('Created image plot from file ' + str(filename), end='\r')
+        print("Created image plot from file " + str(filename), end="\r")
         os.remove(f)
 
 # .mp4 generation
 my_anim = animation.ArtistAnimation(fig, map_images, blit=True)
 writervideo = animation.FFMpegWriter(fps=15)
-my_anim.save('global_animation.mp4', writer=writervideo)
+my_anim.save("global_animation.mp4", writer=writervideo)

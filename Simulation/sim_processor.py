@@ -1,10 +1,11 @@
-'''
+"""
 Creates visual representations of the data from tables in sim_schema.
 
 Authors: Rachel Mecca
 
 (c) 2024 Regents of the University of Michigan
-'''
+"""
+
 from datetime import datetime, timedelta
 import matplotlib
 import matplotlib.pyplot as plt
@@ -17,34 +18,39 @@ import time
 import logging
 import numpy as np
 import pandas as pd
-matplotlib.use( 'TKAgg')
+
+matplotlib.use("TKAgg")
 geod = Geodesic.WGS84
 logger = logging.getLogger(__name__)
 
+
 def insert_initial_data(cursor):
-    '''
-    Adds sample data into waypoints, vessels, missions, and mission_waypoints 
+    """
+    Adds sample data into waypoints, vessels, missions, and mission_waypoints
     tables for testing.
     -------------------------------------------------------------------------
     Parameters
     -------------------------------------------------------------------------
-    :param cursor: SQL cursor 
-  
+    :param cursor: SQL cursor
+
     Returns
     -------------------------------------------------------------------------
     list of ints: vessel ids, 2D list of ints: waypoint ids for each vessel id
-    '''
+    """
     # Insert vessels
     vessels = [
-        ('vessel1', 'cargo',35,'good',500),
-        ('vessel2', 'fishing',45,'bad',550)
+        ("vessel1", "cargo", 35, "good", 500),
+        ("vessel2", "fishing", 45, "bad", 550),
     ]
     vessel_ids = []
     for vessel in vessels:
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO vessels (name, sim_name, type, capacity, system_health, fuel_level)
             VALUES (?, ?, ?, ?, ?, ?);
-        """, (vessel[0],"Test_Sim",vessel[1],vessel[2],vessel[3],vessel[4]))
+        """,
+            (vessel[0], "Test_Sim", vessel[1], vessel[2], vessel[3], vessel[4]),
+        )
         vessel_id = cursor.lastrowid
         vessel_ids.append(vessel_id)
 
@@ -57,7 +63,7 @@ def insert_initial_data(cursor):
         (45, -135, 51),  # Intermediate waypoint3
         (38, -119, 3),  # Intermediate waypoint4
         (36, -117, 12),  # Intermediate waypoint5
-        (34, -120, 0)   # Final destination
+        (34, -120, 0),  # Final destination
     ]
     destinations2 = [
         (31, -120.0, 0),  # Starting position2
@@ -67,146 +73,220 @@ def insert_initial_data(cursor):
         (45, -135, 4),  # Intermediate waypoint3
         (38, -119, 20),  # Intermediate waypoint4
         (36, -117, 12),  # Intermediate waypoint5
-        (33, -118, 0)   # Final destination2
+        (33, -118, 0),  # Final destination2
     ]
-    destination_groups=[destinations1,destinations2]
-    opt_dests1=[destinations1[0],destinations1[3],destinations1[2],destinations1[-1]]
-    opt_dests2=[destinations2[0],destinations2[4],destinations2[1],destinations2[-1]]
-    replan1_1=[destinations1[0],destinations1[3],destinations1[1],destinations1[5],destinations1[-1]]
-    replan1_2=[destinations1[0],destinations1[3],destinations1[1],destinations1[4],destinations1[-1]]
-    plans1=[opt_dests1,replan1_1,replan1_2]
-    plans2=[opt_dests2]
-    plan_groups=[plans1,plans2]
-    replan_dets1=[(39,-134,datetime(2018,1,7,8,30),"danger detected"),(35.5,-118,datetime(2018,1,7,9,30),"danger detected")]
-    replan_dets2=[]
-    replan_groups=[replan_dets1,replan_dets2]
+    destination_groups = [destinations1, destinations2]
+    opt_dests1 = [
+        destinations1[0],
+        destinations1[3],
+        destinations1[2],
+        destinations1[-1],
+    ]
+    opt_dests2 = [
+        destinations2[0],
+        destinations2[4],
+        destinations2[1],
+        destinations2[-1],
+    ]
+    replan1_1 = [
+        destinations1[0],
+        destinations1[3],
+        destinations1[1],
+        destinations1[5],
+        destinations1[-1],
+    ]
+    replan1_2 = [
+        destinations1[0],
+        destinations1[3],
+        destinations1[1],
+        destinations1[4],
+        destinations1[-1],
+    ]
+    plans1 = [opt_dests1, replan1_1, replan1_2]
+    plans2 = [opt_dests2]
+    plan_groups = [plans1, plans2]
+    replan_dets1 = [
+        (39, -134, datetime(2018, 1, 7, 8, 30), "danger detected"),
+        (35.5, -118, datetime(2018, 1, 7, 9, 30), "danger detected"),
+    ]
+    replan_dets2 = []
+    replan_groups = [replan_dets1, replan_dets2]
     waypoint_id_map = {}
     for group in destination_groups:
-     for destination in group:
-        cursor.execute("""
+        for destination in group:
+            cursor.execute(
+                """
             INSERT INTO waypoints (latitude, longitude, priority_score)
             VALUES (?, ?, ?);
-        """, (destination[0], destination[1], destination[2]))
-        waypoint_id_map[tuple(destination)] = cursor.lastrowid
+        """,
+                (destination[0], destination[1], destination[2]),
+            )
+            waypoint_id_map[tuple(destination)] = cursor.lastrowid
 
-   # Now build the optimal waypoint ID groups
+    # Now build the optimal waypoint ID groups
     waypoint_id_groups = []
     for plan_group in plan_groups:
-     waypoint_plans=[]
-     for plan in plan_group:
-      waypoint_ids = []
-      for destination in plan:
-        waypoint_ids.append(waypoint_id_map[tuple(destination)])
-      waypoint_plans.append(waypoint_ids)
-     waypoint_id_groups.append(waypoint_plans)
+        waypoint_plans = []
+        for plan in plan_group:
+            waypoint_ids = []
+            for destination in plan:
+                waypoint_ids.append(waypoint_id_map[tuple(destination)])
+            waypoint_plans.append(waypoint_ids)
+        waypoint_id_groups.append(waypoint_plans)
 
     # Insert missions
     mission_ids = []
-    for i in range(0,len(vessel_ids)):
-        total=0
+    for i in range(0, len(vessel_ids)):
+        total = 0
         for dest in destination_groups[i]:
-            total+=dest[2]
-        cursor.execute("""
+            total += dest[2]
+        cursor.execute(
+            """
             INSERT INTO missions (vessel_id,total_priority, mission_name, start_date, end_date)
             VALUES (?, ?, ?, ?, ?);
-        """, (vessel_ids[i], total, "mission1", datetime(2018,1,1,7), datetime(2018,1,2,7)))
-        mission_ids.append( cursor.lastrowid)
+        """,
+            (
+                vessel_ids[i],
+                total,
+                "mission1",
+                datetime(2018, 1, 1, 7),
+                datetime(2018, 1, 2, 7),
+            ),
+        )
+        mission_ids.append(cursor.lastrowid)
 
     # Associate waypoints with missions
     for i in range(len(plan_groups)):
-      for j in range(len(plan_groups[i])):
-         count=0
-         total=0
-         for dest in plan_groups[i][j]:
-            total+=dest[2]
-         for order, destination in enumerate(plan_groups[i][j]):
-            cursor.execute("""
+        for j in range(len(plan_groups[i])):
+            count = 0
+            total = 0
+            for dest in plan_groups[i][j]:
+                total += dest[2]
+            for order, destination in enumerate(plan_groups[i][j]):
+                cursor.execute(
+                    """
             INSERT INTO mission_waypoints (mission_id, waypoint_id, replan_id, waypoint_order, goal_time)
             VALUES (?, ?,?, ?, ?);
-        """, (mission_ids[i], waypoint_id_groups[i][j][count],j, order, destination[1]))
-            count+=1
-         if(j!=0):
-          cursor.execute("""
+        """,
+                    (
+                        mission_ids[i],
+                        waypoint_id_groups[i][j][count],
+                        j,
+                        order,
+                        destination[1],
+                    ),
+                )
+                count += 1
+            if j != 0:
+                cursor.execute(
+                    """
             INSERT INTO replans (replan_id, vessel_id, mission_id, timestamp, latitude, longitude, total_priority, num_waypoints, reason)
             VALUES (?, ?,?, ?,?,?,?,?,?);
-          """, (j, vessel_ids[i],mission_ids[i], replan_groups[i][j-1][2],replan_groups[i][j-1][0],replan_groups[i][j-1][1],total,len(plan_groups[i][j]),replan_groups[i][j-1][3])) 
+          """,
+                    (
+                        j,
+                        vessel_ids[i],
+                        mission_ids[i],
+                        replan_groups[i][j - 1][2],
+                        replan_groups[i][j - 1][0],
+                        replan_groups[i][j - 1][1],
+                        total,
+                        len(plan_groups[i][j]),
+                        replan_groups[i][j - 1][3],
+                    ),
+                )
     print("data inserted")
     return vessel_ids, waypoint_id_groups
 
 
 def simulate_mission(cursor, vessel_ids, waypoint_id_groups):
- '''
- Adds sample data into the log table for testing.
- -----------------------------------------------
- Parameters
- ----------------------------------------------
- :param cursor: SQL cursor 
- :param vessel_ids: list of ints representing vessel table ids
- :param waypoint_id_groups: 2D list of ints, waypoint table ids for each vessel 
- '''
- done=False
- counter=0
- timestamp=datetime(2018,1,1,7)
- replan_counts=[0]*len(vessel_ids)
- while(not done):
-   for i in range (len(vessel_ids)):
-    
-    if(len(waypoint_id_groups[i][replan_counts[i]])>counter):
-    #Get next replan details
-     cursor.execute("""
+    """
+    Adds sample data into the log table for testing.
+    -----------------------------------------------
+    Parameters
+    ----------------------------------------------
+    :param cursor: SQL cursor
+    :param vessel_ids: list of ints representing vessel table ids
+    :param waypoint_id_groups: 2D list of ints, waypoint table ids for each vessel
+    """
+    done = False
+    counter = 0
+    timestamp = datetime(2018, 1, 1, 7)
+    replan_counts = [0] * len(vessel_ids)
+    while not done:
+        for i in range(len(vessel_ids)):
+
+            if len(waypoint_id_groups[i][replan_counts[i]]) > counter:
+                # Get next replan details
+                cursor.execute(
+                    """
       SELECT timestamp, latitude,longitude,reason FROM replans WHERE vessel_id = ? AND replan_id= ?;
-       """, (vessel_ids[i],replan_counts[i]+1))
-     row=cursor.fetchone()
-     if(row is not None):
-      replan_time,replan_lat, replan_lon,reason = row
-      if(datetime.fromisoformat(replan_time)>=timestamp):
-        replan_counts[i]+=1
-        print(f"vessel{vessel_ids[i]} replanned mission at ({replan_lat},{replan_lon}) due to {reason}")
-    # Get the waypoint details
-     cursor.execute("""
+       """,
+                    (vessel_ids[i], replan_counts[i] + 1),
+                )
+                row = cursor.fetchone()
+                if row is not None:
+                    replan_time, replan_lat, replan_lon, reason = row
+                    if datetime.fromisoformat(replan_time) >= timestamp:
+                        replan_counts[i] += 1
+                        print(
+                            f"vessel{vessel_ids[i]} replanned mission at ({replan_lat},{replan_lon}) due to {reason}"
+                        )
+                # Get the waypoint details
+                cursor.execute(
+                    """
       SELECT latitude, longitude FROM waypoints WHERE waypoint_id = ?;
-     """, (waypoint_id_groups[i][replan_counts[i]][counter],))
-   
-     lat, lon = cursor.fetchone()
-    
-      # Log the new position
-     cursor.execute("""
+     """,
+                    (waypoint_id_groups[i][replan_counts[i]][counter],),
+                )
+
+                lat, lon = cursor.fetchone()
+
+                # Log the new position
+                cursor.execute(
+                    """
             INSERT INTO logs (vessel_id, timestamp, latitude, longitude, speed, system_health, fuel_level)
             VALUES (?, ?, ?, ?, 12.0, 'Good', 100.0);
-       """, (vessel_ids[i],timestamp, lat, lon))
-        
-     done=False
-    
-    else:
-        done=True
-   counter+=1
-   # Simulate some processing time
-   timestamp+=timedelta(hours=1)
-   time.sleep(1)
+       """,
+                    (vessel_ids[i], timestamp, lat, lon),
+                )
 
-def getAllData(db_filepath, sim_name):  
-    '''
+                done = False
+
+            else:
+                done = True
+        counter += 1
+        # Simulate some processing time
+        timestamp += timedelta(hours=1)
+        time.sleep(1)
+
+
+def getAllData(db_filepath, sim_name):
+    """
     reads and returns data from schema.
     -----------------------------------
     Parameters
     -----------------------------------
     :param db_filepath: string, filepath to SQL database
     :param sim_name: string, name of simulation to get data from
-    
+
     Returns
     ---------------------------------------------
     All data from vessels, waypoints, missions, mission_waypoints, replans, and logs tables
-    '''
+    """
     connection = sqlite3.connect(db_filepath)
     cursor = connection.cursor()
 
     # 1. Get vessels with the given sim_name
-    cursor.execute("""
+    cursor.execute(
+        """
     SELECT MIN(vessel_id) AS vessel_id, name, sim_name
     FROM vessels
     WHERE sim_name = ?
     GROUP BY name, sim_name
-     """, (sim_name,))
+     """,
+        (sim_name,),
+    )
 
     vessels_data = cursor.fetchall()
     vessel_ids = [row[0] for row in vessels_data]
@@ -218,13 +298,17 @@ def getAllData(db_filepath, sim_name):
         return [], [], [], [], [], []
 
     # 2. Get missions for these vessels
-    query = f'SELECT * FROM missions WHERE vessel_id IN ({",".join("?"*len(vessel_ids))})'
+    query = (
+        f'SELECT * FROM missions WHERE vessel_id IN ({",".join("?"*len(vessel_ids))})'
+    )
     cursor.execute(query, vessel_ids)
     missions_data = cursor.fetchall()
     mission_ids = [row[0] for row in missions_data]  # mission_id is column 0
 
     # 3. Get replans for these vessels
-    query = f'SELECT * FROM replans WHERE vessel_id IN ({",".join("?"*len(vessel_ids))})'
+    query = (
+        f'SELECT * FROM replans WHERE vessel_id IN ({",".join("?"*len(vessel_ids))})'
+    )
     cursor.execute(query, vessel_ids)
     replan_data = cursor.fetchall()
 
@@ -239,7 +323,9 @@ def getAllData(db_filepath, sim_name):
         cursor.execute(query, mission_ids)
         mission_waypoints_data = cursor.fetchall()
         # Get unique waypoint_ids from mission_waypoints
-        waypoint_ids = list(set(row[2] for row in mission_waypoints_data))  # waypoint_id is column 2
+        waypoint_ids = list(
+            set(row[2] for row in mission_waypoints_data)
+        )  # waypoint_id is column 2
     else:
         mission_waypoints_data = []
         waypoint_ids = []
@@ -255,10 +341,18 @@ def getAllData(db_filepath, sim_name):
     cursor.close()
     connection.close()
 
-    return vessels_data, waypoints_data, missions_data, mission_waypoints_data, replan_data, logs_data
+    return (
+        vessels_data,
+        waypoints_data,
+        missions_data,
+        mission_waypoints_data,
+        replan_data,
+        logs_data,
+    )
+
 
 def run_animation(db_filepath, sim_name, timestep):
-    '''
+    """
     runs animation of vessels sailing to waypoints using data in database
     ----------------------------------------------------------------------
     Parameters
@@ -266,15 +360,32 @@ def run_animation(db_filepath, sim_name, timestep):
     :param db_filepath: string, filepath to SQL database
     :param sim_name: string, name of simulation to animate
     :param timestep: float, number of seconds between each vessel movement
-    '''
+    """
     # Set up database
-    vessels_data, waypoints_data, missions_data, mission_waypoints_data, replan_data, logs_data = getAllData(db_filepath,sim_name)
+    (
+        vessels_data,
+        waypoints_data,
+        missions_data,
+        mission_waypoints_data,
+        replan_data,
+        logs_data,
+    ) = getAllData(db_filepath, sim_name)
     vessel_id_to_name = {v[0]: v[1] for v in vessels_data}
-    colors = ['lightcoral', 'orangered', 'gold', 'honeydew', 'lawngreen', 'cyan', 'violet', 'deeppink', 'lightpink']
+    colors = [
+        "lightcoral",
+        "orangered",
+        "gold",
+        "honeydew",
+        "lawngreen",
+        "cyan",
+        "violet",
+        "deeppink",
+        "lightpink",
+    ]
 
     sc = []  # list of ship icons
     vesselIds = []
-    fig, ax = plt.subplots(subplot_kw={'projection': ccrs.PlateCarree()})
+    fig, ax = plt.subplots(subplot_kw={"projection": ccrs.PlateCarree()})
     counter = 0
 
     # Initial waypoint setup
@@ -283,7 +394,11 @@ def run_animation(db_filepath, sim_name, timestep):
     # Initial vessel setup
     for i in range(len(vessels_data)):
         color = colors[counter % len(colors)]
-        sc.append(ax.scatter(0, 0, marker='^', color=color, s=100, transform=ccrs.PlateCarree()))
+        sc.append(
+            ax.scatter(
+                0, 0, marker="^", color=color, s=100, transform=ccrs.PlateCarree()
+            )
+        )
         for row in missions_data:
             if vessels_data[i][0] == row[0]:
                 mission_id = row[0]
@@ -300,10 +415,10 @@ def run_animation(db_filepath, sim_name, timestep):
     # For replan data
     sorted_replans = sorted(replan_data, key=lambda x: x[3])  # Sort by timestamp
     printed_replans = set()
-    
+
     for row in logs_data:
         log_time = row[3]
-        name=vessel_id_to_name.get(row[1], f"Unknown({row[1]})")
+        name = vessel_id_to_name.get(row[1], f"Unknown({row[1]})")
         # Check for replans at this log time
         for repl in sorted_replans:
             replan_key = (repl[1], repl[0])  # (vessel_id, replan_id)
@@ -311,7 +426,7 @@ def run_animation(db_filepath, sim_name, timestep):
 
             if repl_time <= log_time and replan_key not in printed_replans:
                 # Print replan info
-                
+
                 print(f"🔄 {name} replanned at {repl_time}")
                 print(f"    Location: ({repl[4]:.2f}, {repl[5]:.2f})")
                 print(f"    New Total Priority: {repl[6]}")
@@ -326,81 +441,111 @@ def run_animation(db_filepath, sim_name, timestep):
         # Update vessels
         for i in range(len(vesselIds)):
             if row[1] == vesselIds[i]:
-                g = geod.Inverse(previous_coordinates[i][0], previous_coordinates[i][1], row[4], row[5])
-                heading = g['azi1']
+                g = geod.Inverse(
+                    previous_coordinates[i][0],
+                    previous_coordinates[i][1],
+                    row[4],
+                    row[5],
+                )
+                heading = g["azi1"]
                 sc[i].set_offsets((row[5], row[4]))
                 update_marker_rotation(sc[i], heading)
                 ax.set_title(row[3], fontsize=15)
                 previous_coordinates[i] = (row[4], row[5])
                 plt.pause(timestep)
 
-        print(f"{datetime.fromisoformat(log_time)+timedelta(hours=timestep)}: {name} at ({row[4]},{row[5]}) with speed {row[6]} knots and fuel weight {row[8]}")
+        print(
+            f"{datetime.fromisoformat(log_time)+timedelta(hours=timestep)}: {name} at ({row[4]},{row[5]}) with speed {row[6]} knots and fuel weight {row[8]}"
+        )
 
     plt.ioff()
     plt.show()
 
     print("Simulation ended.")
-    
-def make_fuel_graph(db_filepath,sim_name,vesselNames=[]):
-    '''
+
+
+def make_fuel_graph(db_filepath, sim_name, vesselNames=[]):
+    """
     Makes a line graph showing the fuelweight over time
     -------------------------------------------------------
     Parameters
     -------------------------------------------------------
     :param db_filepath: string, filepath to SQL database
-    :param sim_name: string, name of simulation 
-    :param vesselNames: list of vessels to be displyed on the graph. 
+    :param sim_name: string, name of simulation
+    :param vesselNames: list of vessels to be displyed on the graph.
                          If empty all vessels in the database are displayed.
-    '''
-    vessels_data,waypoints_data,missions_data,mission_waypoints_data,replan_data,logs_data=getAllData(db_filepath,sim_name)
-    vesselIds=[]
-    
-    colors=['lightcoral','orangered','gold','honeydew','lawngreen','cyan','violet','deeppink','lightpink']
-    if(len(vesselNames)==0):
-     for i  in range(len(vessels_data)):
-        vesselNames.append(vessels_data[i][1])
+    """
+    (
+        vessels_data,
+        waypoints_data,
+        missions_data,
+        mission_waypoints_data,
+        replan_data,
+        logs_data,
+    ) = getAllData(db_filepath, sim_name)
+    vesselIds = []
+
+    colors = [
+        "lightcoral",
+        "orangered",
+        "gold",
+        "honeydew",
+        "lawngreen",
+        "cyan",
+        "violet",
+        "deeppink",
+        "lightpink",
+    ]
+    if len(vesselNames) == 0:
+        for i in range(len(vessels_data)):
+            vesselNames.append(vessels_data[i][1])
     for i in range(len(vesselNames)):
-        found=False
+        found = False
         for row in vessels_data:
-            if(row[1]==vesselNames[i]):
-                found=True
+            if row[1] == vesselNames[i]:
+                found = True
                 vesselIds.append(row[0])
-        if(not found):
-              logger.warning(f"{vesselNames[i]} not found in vessels_data")
-              del vesselNames[i]
+        if not found:
+            logger.warning(f"{vesselNames[i]} not found in vessels_data")
+            del vesselNames[i]
     for i in range(len(vesselNames)):
-        start_time=datetime(2018, 1, 1, 0, 0)
-        times=[]
-        fuel_weights=[] 
-        count=0
+        start_time = datetime(2018, 1, 1, 0, 0)
+        times = []
+        fuel_weights = []
+        count = 0
         for row in logs_data:
-          if(row[1]==vesselIds[i]):
-              if(count==0):
-               start_time=datetime.strptime(row[3], '%Y-%m-%d %H:%M:%S')
-               count=1
-              time_difference = abs((datetime.strptime(row[3], '%Y-%m-%d %H:%M:%S')- start_time).total_seconds())  
-              hrs_difference = int(time_difference // 3600)
-              times.append(hrs_difference)
-              fuel_weights.append(row[8])
-             
-        plt.plot(times, fuel_weights,label=vesselNames[i]) 
-        
+            if row[1] == vesselIds[i]:
+                if count == 0:
+                    start_time = datetime.strptime(row[3], "%Y-%m-%d %H:%M:%S")
+                    count = 1
+                time_difference = abs(
+                    (
+                        datetime.strptime(row[3], "%Y-%m-%d %H:%M:%S") - start_time
+                    ).total_seconds()
+                )
+                hrs_difference = int(time_difference // 3600)
+                times.append(hrs_difference)
+                fuel_weights.append(row[8])
+
+        plt.plot(times, fuel_weights, label=vesselNames[i])
+
     plt.legend()
-    plt.title("Vessel Fuel Weight Over Time",fontweight='bold')
-    plt.xlabel('Time (hours)', fontweight='bold')
-    plt.ylabel('Fuel Weight (kN)', fontweight='bold')
+    plt.title("Vessel Fuel Weight Over Time", fontweight="bold")
+    plt.xlabel("Time (hours)", fontweight="bold")
+    plt.ylabel("Fuel Weight (kN)", fontweight="bold")
     plt.show()
 
-def setup_waypoints(waypoints_data,ax):
-    '''
-     Determines map size and places waypoint icons.
-     ----------------------------------------------
-    
-     Parameters
-     ----------------------------------------------
-     :param waypoints_data: data from "waypoints" table in SQL database
-     :param ax: pyplot Geoaxes object for map
-    '''
+
+def setup_waypoints(waypoints_data, ax):
+    """
+    Determines map size and places waypoint icons.
+    ----------------------------------------------
+
+    Parameters
+    ----------------------------------------------
+    :param waypoints_data: data from "waypoints" table in SQL database
+    :param ax: pyplot Geoaxes object for map
+    """
     lon_min = 180
     lon_max = -180
     lat_min = 90
@@ -412,70 +557,79 @@ def setup_waypoints(waypoints_data,ax):
         lon_max = max(lon_max, lon)
         lat_min = min(lat_min, lat)
         lat_max = max(lat_max, lat)
-        ax.scatter(row[2], row[1], marker='.', color='white', s=100, transform=ccrs.PlateCarree())
+        ax.scatter(
+            row[2],
+            row[1],
+            marker=".",
+            color="white",
+            s=100,
+            transform=ccrs.PlateCarree(),
+        )
     # Add padding of 5 degrees to each side
     padding = 5
     lon_min -= padding
     lon_max += padding
     lat_min -= padding
     lat_max += padding
-    
-    
-    makeMap(lon_min, lon_max, lat_min, lat_max,ax,datetime(2018, 1, 1, 0, 0))
 
-def makeMap( lon_min, lon_max, lat_min, lat_max,ax,start_time):
-    '''
-     Makes and sizes the map based on given dimmensions.
-     ---------------------------------------------------
-     
-     Parameters
-     ---------------------------------------------------
-     :param lon_min: float, minimum longitude of the map
-     :param lon_max: float, maximum longitude of the map
-     :param lat_min: float, minimum latitude of the map
-     :param lat_max: float, maximum latitude of the map
-     :param ax: pyplot Geoaxes object for map
-     :param start_time: datetime object, timestamp the simulation starts at
-    '''
+    makeMap(lon_min, lon_max, lat_min, lat_max, ax, datetime(2018, 1, 1, 0, 0))
+
+
+def makeMap(lon_min, lon_max, lat_min, lat_max, ax, start_time):
+    """
+    Makes and sizes the map based on given dimmensions.
+    ---------------------------------------------------
+
+    Parameters
+    ---------------------------------------------------
+    :param lon_min: float, minimum longitude of the map
+    :param lon_max: float, maximum longitude of the map
+    :param lat_min: float, minimum latitude of the map
+    :param lat_max: float, maximum latitude of the map
+    :param ax: pyplot Geoaxes object for map
+    :param start_time: datetime object, timestamp the simulation starts at
+    """
     ax.coastlines()
     ax.set_extent([lon_min, lon_max, lat_min, lat_max], crs=ccrs.PlateCarree())
-    ax.set_facecolor('blue')  
+    ax.set_facecolor("blue")
     ax.set_title(start_time, fontsize=15)
 
+
 def update_marker_rotation(sc, heading):
-     '''
-      Adjusts the rotation of the vessel marker based on the heading
-      --------------------------------------------------------------
-      
-      Parameters
-      ------------------------------------------------------------
-      :param sc: vessel marker
-      :param heading: float, vessel's heading
-     '''
- 
-     if((heading>=-5 and heading<=5) or (heading>=175 and heading<=185)):
-         transform = Affine2D().rotate_deg(heading)
-     elif(np.abs(heading)>=85 and np.abs(heading)<=95):
-          transform = Affine2D().rotate_deg(heading+180)
-     elif(heading>0):
-          transform = Affine2D().rotate_deg(heading-90)
-     else:
-          transform = Affine2D().rotate_deg(heading+90)
-    
-     sc.set_transform(transform)
+    """
+    Adjusts the rotation of the vessel marker based on the heading
+    --------------------------------------------------------------
+
+    Parameters
+    ------------------------------------------------------------
+    :param sc: vessel marker
+    :param heading: float, vessel's heading
+    """
+
+    if (heading >= -5 and heading <= 5) or (heading >= 175 and heading <= 185):
+        transform = Affine2D().rotate_deg(heading)
+    elif np.abs(heading) >= 85 and np.abs(heading) <= 95:
+        transform = Affine2D().rotate_deg(heading + 180)
+    elif heading > 0:
+        transform = Affine2D().rotate_deg(heading - 90)
+    else:
+        transform = Affine2D().rotate_deg(heading + 90)
+
+    sc.set_transform(transform)
+
 
 def simulation_compare(db_filepath, sim_list, display_all_data=True):
-    '''
-    Makes a table comparing priority score, number of replans, and waypoints hit 
+    """
+    Makes a table comparing priority score, number of replans, and waypoints hit
     for each vessel in sim_list
     -------------------------------------------------------
-    
+
     Parameters
     -------------------------------------------------------
     :param db_filepath: string, filepath to SQL database
-    :param sim_list: list of simulations to be used  in the comparison. 
+    :param sim_list: list of simulations to be used  in the comparison.
     :param dispaly_all_data: if true displays all data for each vessel, else just displays the mean values per vessel and fleet
-    '''
+    """
     vessels_data_list = []
     replans_data_list = []
     for sim in sim_list:
@@ -505,7 +659,7 @@ def simulation_compare(db_filepath, sim_list, display_all_data=True):
             metrics[vessel_name] = {
                 "Total Priority": total_priority,
                 "Waypoints Hit": waypoints_hit,
-                "Replans": replan_count
+                "Replans": replan_count,
             }
         return metrics
 
@@ -528,24 +682,24 @@ def simulation_compare(db_filepath, sim_list, display_all_data=True):
                 metrics = metrics_list[i].get(vessel_name, {})
                 row[f"Priorities ({sim})"] = metrics.get("Total Priority")
                 row[f"Waypoints ({sim})"] = metrics.get("Waypoints Hit")
-                row[f"Replans ({sim})"]   = metrics.get("Replans")
+                row[f"Replans ({sim})"] = metrics.get("Replans")
         else:
             # compute averages directly
-          priorities = []
-          waypoints = []
-          replans   = []
-          for i in range(len(sim_list)):
-            metrics = metrics_list[i].get(vessel_name, {})
-            if metrics.get("Total Priority") is not None:
-                priorities.append(metrics["Total Priority"])
-            if metrics.get("Waypoints Hit") is not None:
-                waypoints.append(metrics["Waypoints Hit"])
-            if metrics.get("Replans") is not None:
-                replans.append(metrics["Replans"])
-          row["Avg Priorities"] = np.mean(priorities) if priorities else None
-          row["Avg Waypoints"]  = np.mean(waypoints) if waypoints else None
-          row["Avg Replans"]    = np.mean(replans)   if replans   else None
-    
+            priorities = []
+            waypoints = []
+            replans = []
+            for i in range(len(sim_list)):
+                metrics = metrics_list[i].get(vessel_name, {})
+                if metrics.get("Total Priority") is not None:
+                    priorities.append(metrics["Total Priority"])
+                if metrics.get("Waypoints Hit") is not None:
+                    waypoints.append(metrics["Waypoints Hit"])
+                if metrics.get("Replans") is not None:
+                    replans.append(metrics["Replans"])
+            row["Avg Priorities"] = np.mean(priorities) if priorities else None
+            row["Avg Waypoints"] = np.mean(waypoints) if waypoints else None
+            row["Avg Replans"] = np.mean(replans) if replans else None
+
         rows.append(row)
 
     df = pd.DataFrame(rows)
@@ -553,11 +707,17 @@ def simulation_compare(db_filepath, sim_list, display_all_data=True):
     # per-vessel averages
     priority_cols = [c for c in df.columns if "Priorities" in c]
     waypoint_cols = [c for c in df.columns if "Waypoints" in c]
-    replan_cols   = [c for c in df.columns if "Replans"   in c]
+    replan_cols = [c for c in df.columns if "Replans" in c]
 
-    df["Avg Priorities"] = df[priority_cols].mean(axis=1, skipna=True) if priority_cols else None
-    df["Avg Waypoints"]  = df[waypoint_cols].mean(axis=1, skipna=True) if waypoint_cols else None
-    df["Avg Replans"]    = df[replan_cols].mean(axis=1, skipna=True)   if replan_cols else None
+    df["Avg Priorities"] = (
+        df[priority_cols].mean(axis=1, skipna=True) if priority_cols else None
+    )
+    df["Avg Waypoints"] = (
+        df[waypoint_cols].mean(axis=1, skipna=True) if waypoint_cols else None
+    )
+    df["Avg Replans"] = (
+        df[replan_cols].mean(axis=1, skipna=True) if replan_cols else None
+    )
 
     if not display_all_data:
         # keep only vessel + averages
@@ -582,9 +742,10 @@ def simulation_compare(db_filepath, sim_list, display_all_data=True):
 
     print(df.to_string(index=False))
     return df
-     
+
+
 def main():
-    db_path = 'Simulation/sim_db.db'
+    db_path = "Simulation/sim_db.db"
     connection = sqlite3.connect(db_path)
     cursor = connection.cursor()
     truncate_script = """
@@ -597,21 +758,22 @@ def main():
         """
     cursor.executescript(truncate_script)
     connection.commit()
-    
+
     # Set up initial data
     vessel_ids, waypoint_id_groups = insert_initial_data(cursor)
     connection.commit()
-   
+
     # Simulate the mission
-    simulate_mission(cursor, vessel_ids,waypoint_id_groups)
-    
+    simulate_mission(cursor, vessel_ids, waypoint_id_groups)
+
     connection.commit()
-    run_animation(db_path,"Test_Sim",1)
-    make_fuel_graph(db_path,"Test_Sim")
+    run_animation(db_path, "Test_Sim", 1)
+    make_fuel_graph(db_path, "Test_Sim")
     cursor.close()
     connection.close()
 
     print(f"Database operations completed successfully on {db_path}")
+
 
 if __name__ == "__main__":
     main()

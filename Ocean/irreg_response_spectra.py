@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 class Response_Spectra:
     def __init__(self, RAO, wave_spectrum, omegas):
         self.RAO = RAO
@@ -8,7 +9,9 @@ class Response_Spectra:
         if len(RAO) != len(wave_spectrum):
             print("RAO length: ", len(RAO))
             print("wave_spectrum length: ", len(wave_spectrum))
-            raise ValueError("RAO and wave_spectrum must correspond to the same value of omegas (lengths must be equal))")
+            raise ValueError(
+                "RAO and wave_spectrum must correspond to the same value of omegas (lengths must be equal))"
+            )
         self.omegas = omegas
 
     def generate_response_spectra(self):
@@ -19,9 +22,9 @@ class Response_Spectra:
         """
         response_spectra = np.zeros(len(self.omegas))
         for i in range(len(self.omegas)):
-            response_spectra[i] = self.RAO[i]**2*self.wave_spectrum[i]
+            response_spectra[i] = self.RAO[i] ** 2 * self.wave_spectrum[i]
         return response_spectra
-    
+
     def generate_RMS(self, Hs, nonlinearity=False):
         """Generates the RMS value of the response spectra.
 
@@ -38,9 +41,9 @@ class Response_Spectra:
         M0 = np.trapz(Response_Spectra, self.omegas, axis=0)
         RMS = np.sqrt(M0)
         if nonlinearity and Hs > 3:
-           RMS = RMS * (0.25*Hs/3 + 1)
+            RMS = RMS * (0.25 * Hs / 3 + 1)
         return RMS
-    
+
     def plot_response_spectrum(self, Hs):
         """Plots the response spectra.
 
@@ -49,12 +52,18 @@ class Response_Spectra:
         """
         response_spectra = self.generate_response_spectra()
         RMS = self.generate_RMS(Hs)
-        #print(f"RMS: {RMS:}")
+        # print(f"RMS: {RMS:}")
         plt.plot(self.omegas, response_spectra)
         plt.xlabel("Frequency (rad/s)")
         plt.ylabel("Response Spectra (m^2 s)")
         plt.title("Response Spectra")
         # Add RMS value to the plot as a text annotation
-        plt.text(0.7, 0.9, f'RMS: {RMS}', transform=plt.gca().transAxes, fontsize=12, bbox=dict(facecolor='white', alpha=0.7))
+        plt.text(
+            0.7,
+            0.9,
+            f"RMS: {RMS}",
+            transform=plt.gca().transAxes,
+            fontsize=12,
+            bbox=dict(facecolor="white", alpha=0.7),
+        )
         plt.show()
-    
