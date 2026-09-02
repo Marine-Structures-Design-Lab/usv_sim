@@ -5,7 +5,7 @@ import numpy as np
 import datetime as dt
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-import Ocean.weather_data_interpolation_API as interpolator
+import src.Ocean.weather_data_interpolation_API as interpolator
 
 
 # --- TESTS for get_file_metadata ---

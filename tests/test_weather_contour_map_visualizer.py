@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 #! Make sure to run the test from Ocean
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-import Ocean.weather_contour_map_visualizer as vis
+import src.Ocean.weather_contour_map_visualizer as vis
 
 
 # ----- specifically for read_initial_data tests -----

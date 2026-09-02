@@ -2,7 +2,7 @@ import numpy as np
 from pathlib import Path
 
 script_dir = Path(__file__).resolve().parent
-ocean_path = script_dir.parent / "Ocean" / "NOAA_NorthAtlantic.nc"
+ocean_path = script_dir.parent / "src" / "Ocean" / "NOAA_NorthAtlantic.nc"
 
 
 class RAO:

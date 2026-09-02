@@ -1,22 +1,21 @@
 """Test Cases for genetic algorithm mission_planner"""
 
 from datetime import datetime
-import numpy as np
 import pytest
-from Simulation.vessel_sim_engine import Waypoint, Mission, Destination, vesselFuel
+from src.Simulation.vessel_sim_engine import Waypoint, Mission, Destination, vesselFuel
 from geographiclib.geodesic import Geodesic
-from Simulation.ga_mission_planner import VesselProblem, Optimizer
+from src.Simulation.ga_mission_planner import VesselProblem, Optimizer
 
 geod = Geodesic.WGS84
 from pathlib import Path
 
 script_dir = Path(__file__).resolve().parent
-model_path = "Wave_Predictor/torch_data/model.pth"
+model_path = "src/Wave_Predictor/torch_data/model.pth"
 weath_input_dir_lat40_lon_neg_140 = (
-    script_dir.parent / "Ocean/weather_2_nc/1201_1231_lat30_lon30_fc0_ts6"
+    script_dir.parent / "src/Ocean/weather_2_nc/1201_1231_lat30_lon30_fc0_ts6"
 )
 fc_input_dir_lat40_lon_neg_140 = (
-    script_dir.parent / "Ocean/weather_2_nc/1215_1225_lat10_lon10_fc384_ts9"
+    script_dir.parent / "src/Ocean/weather_2_nc/1215_1225_lat10_lon10_fc384_ts9"
 )
 
 

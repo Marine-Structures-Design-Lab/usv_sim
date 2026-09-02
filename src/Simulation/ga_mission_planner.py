@@ -321,7 +321,7 @@ class Optimizer(object):
         ----------------------------------------------------------------------
         Individual: made from chrom
         """
-        from Simulation.vessel_sim_engine import Mission
+        from src.Simulation.vessel_sim_engine import Mission
 
         destinations = []
 
@@ -777,7 +777,7 @@ class Optimizer(object):
         fuel_left: floatsestimated amount of fuel remaining after completing the mission
         fitness: float, fitness score of the optimal mission
         """
-        from Simulation.vessel_sim_engine import Mission
+        from src.Simulation.vessel_sim_engine import Mission
 
         scores = []
         generations = []

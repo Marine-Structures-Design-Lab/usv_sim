@@ -102,7 +102,7 @@ To run a simulation, you must:
 
 A full runnable example is provided in: ```vessel_sim_engine.py```
 From the project root directory, run:
-    `python -m Simulation.vessel_sim_engine`
+    `python -m src.Simulation.vessel_sim_engine`
 ### Running Multiple Simulations in Parallel
 To run large-scale experiments across multiple mission scenarios, a parallel simulation runner is provided in `sim_runner.py`. This script allows multiple simulations to be executed concurrently, making it easier to evaluate performance across many configurations or environmental conditions.
 

@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from Ocean.weather_utils import (
+from src.Ocean.weather_utils import (
     filelist_editor,
     get_file_list,
     read_grid_info,
@@ -16,7 +16,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # ---------- CONFIG ----------
-INPUT_DIR = "Ocean/tests/weather_2_nc/1210_1231_lat30_40_lon150_160_fc0_ts6"
+INPUT_DIR = "src/Ocean/tests/weather_2_nc/1210_1231_lat30_40_lon150_160_fc0_ts6"
 VARIABLE_NAME = "swh"
 UNIT = ""  # UPDATED in code
 TARGET_LAT = 35

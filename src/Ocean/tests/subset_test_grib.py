@@ -3,7 +3,7 @@ import os
 import netCDF4
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-from Ocean import weather_data_downsizer as downsizer
+from src.Ocean import weather_data_downsizer as downsizer
 
 
 """

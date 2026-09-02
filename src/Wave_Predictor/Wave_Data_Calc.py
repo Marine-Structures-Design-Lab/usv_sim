@@ -4,7 +4,7 @@ import torch
 import os
 
 from .WaveHeightPredictor import WaveHeightPredictor
-from Ocean.weather_data_interpolation_API import (
+from src.Ocean.weather_data_interpolation_API import (
     planning_interpolation,
     load_netcdf_folder,
 )
@@ -33,7 +33,7 @@ class Wave_Data_Calc:
         self.use_fc = fc_input_dir != None
         if self.use_model:
             self.model.load_state_dict(torch.load(model_path))
-            self.stats = torch.load("Wave_Predictor/torch_data/normalization.pt")
+            self.stats = torch.load("src/Wave_Predictor/torch_data/normalization.pt")
             self.train_mean = self.stats["train_mean"]
             self.train_std = self.stats["train_std"]
         self.model_cache = {}

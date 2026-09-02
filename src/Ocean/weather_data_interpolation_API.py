@@ -3,7 +3,7 @@ from netCDF4 import Dataset
 import numpy as np
 from datetime import datetime, timedelta
 import logging
-from Ocean.weather_utils import update_fcst_time, get_file_list, extract_value
+from src.Ocean.weather_utils import update_fcst_time, get_file_list, extract_value
 
 # ---------- LOGGING SETUP ----------
 # logging.basicConfig(
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 _planning_cache = {}
 _nowcast_cache = {}
 # --- CONFIG ---
-INPUT_DIR = "Ocean/tests/weather_2_nc/1201_1210_lat10_lon10_fc50_ts9"
+INPUT_DIR = "src/Ocean/tests/weather_2_nc/1201_1210_lat10_lon10_fc50_ts9"
 CURRENT_DT = datetime(2024, 12, 1, 6)
 FCST_DT = datetime(2024, 12, 1, 7)
 TARGET_LAT = 51.3

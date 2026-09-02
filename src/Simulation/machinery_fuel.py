@@ -16,7 +16,7 @@ from scipy.interpolate import CubicSpline
 import math as math
 import numpy as np
 import logging
-from Methods.Models.BSeries import BSeries
+from src.Methods.Models.BSeries import BSeries
 import matplotlib.pyplot as plt
 
 logger = logging.getLogger(__name__)
@@ -769,7 +769,7 @@ if __name__ == "__main__":
         1.225,
         1.1395e-6,
         0.0,
-        "/home/remecca/core/Simulation/Molland_NPL_Data_NumpyRead.csv",
+        "/home/remecca/usv_sim/src/Simulation/Molland_NPL_Data_NumpyRead.csv",
     )
 
     # Create a simple vessel only for testing - can't navigate/not a real vessel

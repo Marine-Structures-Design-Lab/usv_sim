@@ -3,7 +3,7 @@ import netCDF4 as nc
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import numpy as np
-from Ocean.weather_utils import (
+from src.Ocean.weather_utils import (
     filelist_editor,
     get_file_list,
     read_grid_info,
@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 # ---------- CONFIG ----------
 # TODO: update to the directory path to the folder containing .nc files
-INPUT_DIR = "Ocean/tests/weather_2_nc/0101_0110_lat-5_5_lon270_280_fc50_ts9"
+INPUT_DIR = "src/Ocean/tests/weather_2_nc/0101_0110_lat-5_5_lon270_280_fc50_ts9"
 
 # TODO: update the string with variable interested in visualizing
 VARIABLE_NAME = "mpts"

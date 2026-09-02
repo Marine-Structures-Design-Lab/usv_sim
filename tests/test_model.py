@@ -1,4 +1,4 @@
-from Ocean.template_interface import OceanMod
+from src.Ocean.template_interface import OceanMod
 from datetime import datetime, timedelta
 from random import random, choice, sample
 from netCDF4 import Dataset
@@ -8,7 +8,7 @@ import os
 
 
 def create_sample_NOAA_grid():
-    fout = Dataset("Ocean/NOAA_test_suite_grid.nc", mode="w")
+    fout = Dataset("src/Ocean/NOAA_test_suite_grid.nc", mode="w")
     fout.set_fill_off()
     lat_dim = fout.createDimension("lat", 10)
     lon_dim = fout.createDimension("lon", 10)
@@ -59,7 +59,7 @@ def create_sample_NOAA_grid():
 
 
 def create_sample_n_var_grid():
-    fout = Dataset("Ocean/sample_n_var_grid.nc", mode="w")
+    fout = Dataset("src/Ocean/sample_n_var_grid.nc", mode="w")
     fout.set_fill_off()
     lat_dim = fout.createDimension("lat", 5)
     lon_dim = fout.createDimension("lon", 5)
@@ -98,18 +98,18 @@ def test_mission_before_loading():
 
 def test_mission_diff_length_inputs():
     model = OceanMod()
-    if not os.path.isfile("Ocean/NOAA_test_suite_grid.nc"):
+    if not os.path.isfile("src/Ocean/NOAA_test_suite_grid.nc"):
         create_sample_NOAA_grid()
-    model.load_data("Ocean/NOAA_test_suite_grid.nc")
+    model.load_data("src/Ocean/NOAA_test_suite_grid.nc")
     with pytest.raises(ValueError):
         model.weather_mission([datetime(2018, 1, 1, hour=2)], [(0, 0), (1, 1)])
 
 
 def test_mission_invalid_inputs():
     model = OceanMod()
-    if not os.path.isfile("Ocean/NOAA_test_suite_grid.nc"):
+    if not os.path.isfile("src/Ocean/NOAA_test_suite_grid.nc"):
         create_sample_NOAA_grid()
-    model.load_data("Ocean/NOAA_test_suite_grid.nc")
+    model.load_data("src/Ocean/NOAA_test_suite_grid.nc")
     with pytest.raises(ValueError):
         model.weather_mission([datetime(2017, 12, 31)], [(1, 2)])
     with pytest.raises(ValueError):
@@ -128,9 +128,9 @@ def test_load_data():
     model = OceanMod()
     params = model.get_params()
     units = model.get_units()
-    if not os.path.isfile("Ocean/NOAA_test_suite_grid.nc"):
+    if not os.path.isfile("src/Ocean/NOAA_test_suite_grid.nc"):
         create_sample_NOAA_grid()
-    model.load_data("Ocean/NOAA_test_suite_grid.nc")
+    model.load_data("src/Ocean/NOAA_test_suite_grid.nc")
     assert params["lat"] == (0.0, 9.0)
     assert units["lat"] == "degrees north"
 
@@ -149,9 +149,9 @@ def interpolate_NOAA(date, coordinate):
 
 def test_NOAA_interpolation():
     model = OceanMod()
-    if not os.path.isfile("Ocean/NOAA_test_suite_grid.nc"):
+    if not os.path.isfile("src/Ocean/NOAA_test_suite_grid.nc"):
         create_sample_NOAA_grid()
-    model.load_data("Ocean/NOAA_test_suite_grid.nc")
+    model.load_data("src/Ocean/NOAA_test_suite_grid.nc")
     dates = [datetime(2018, 1, 1) + timedelta(hours=(random() * 9)) for _ in range(10)]
     coordinates = [(random() * 9, random() * 9) for _ in range(10)]
     outputs, names = model.weather_mission(dates, coordinates)
@@ -174,8 +174,8 @@ def test_NOAA_interpolation():
 def test_n_variable_file():
     model = OceanMod()
     create_sample_n_var_grid()
-    model.load_data("Ocean/sample_n_var_grid.nc")
-    fin = Dataset("Ocean/sample_n_var_grid.nc")
+    model.load_data("src/Ocean/sample_n_var_grid.nc")
+    fin = Dataset("src/Ocean/sample_n_var_grid.nc")
     param_names = sorted(list(model.get_params().keys()))
     assert param_names == ["lat", "lon", "time"]
     unit_names = sorted(list(model.get_units().keys()))
@@ -183,14 +183,14 @@ def test_n_variable_file():
     _, vars = model.weather_mission([datetime(2018, 1, 1, 3)], [(1, 1)])
     var_names = [u for u in unit_names if u != "time" and u != "lat" and u != "lon"]
     assert vars == var_names
-    os.remove("Ocean/sample_n_var_grid.nc")
+    os.remove("src/Ocean/sample_n_var_grid.nc")
 
 
 def test_invalid_plot_grid():
     model = OceanMod()
-    if not os.path.isfile("Ocean/NOAA_test_suite_grid.nc"):
+    if not os.path.isfile("src/Ocean/NOAA_test_suite_grid.nc"):
         create_sample_NOAA_grid()
-    model.load_data("Ocean/NOAA_test_suite_grid.nc")
+    model.load_data("src/Ocean/NOAA_test_suite_grid.nc")
     with pytest.raises(ValueError):
         model.plot_grid(datetime(2018, 1, 1), "air")
     with pytest.raises(ValueError):

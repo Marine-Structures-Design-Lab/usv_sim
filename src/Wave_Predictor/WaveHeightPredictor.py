@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     num_samples = 18000
     np.random.seed(365363)
-    path1 = "/home/remecca/core/Ocean/EU_north_atlantic.nc"
+    path1 = "/home/remecca/usv_sim/src/Ocean/EU_north_atlantic.nc"
 
     ocean_data = nc.Dataset(path1)
 

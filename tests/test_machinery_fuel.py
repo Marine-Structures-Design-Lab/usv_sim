@@ -4,8 +4,8 @@ test cases for machinery and fuel code
 
 from datetime import datetime
 import pytest
-from Simulation.vessel_sim_engine import Waypoint, Mission, Destination, vesselFuel
-from Simulation.machinery_fuel import (
+from src.Simulation.vessel_sim_engine import Waypoint, Mission, Destination, vesselFuel
+from src.Simulation.machinery_fuel import (
     propulsionSimulationBase,
     PropellerPropulsionModel,
     RPM_EngineModel,
@@ -16,10 +16,10 @@ from pathlib import Path
 
 script_dir = Path(__file__).resolve().parent
 ocean_path = (
-    script_dir.parent / "Ocean/weather_2_nc/1205_1215_lat-10_5_lon50_60_fc350_ts9"
+    script_dir.parent / "src/Ocean/weather_2_nc/1205_1215_lat-10_5_lon50_60_fc350_ts9"
 )
-npl_path = script_dir.parent / "Simulation" / "Molland_NPL_Data_NumpyRead.csv"
-model_path = "Wave_Predictor/torch_data/model.pth"
+npl_path = script_dir.parent / "src/Simulation" / "Molland_NPL_Data_NumpyRead.csv"
+model_path = "src/Wave_Predictor/torch_data/model.pth"
 
 
 @pytest.fixture

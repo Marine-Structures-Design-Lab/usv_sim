@@ -4,7 +4,7 @@ import pytest
 import datetime as dt
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-import Ocean.weather_data_downsizer as downsizer
+import src.Ocean.weather_data_downsizer as downsizer
 
 
 # lon_lat_range_check tests

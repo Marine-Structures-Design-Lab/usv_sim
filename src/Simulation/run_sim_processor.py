@@ -4,31 +4,31 @@ tests the sim processor using data from running a mission in the simulation engi
 
 from datetime import datetime
 
-from Simulation.vessel_sim_engine import (
+from src.Simulation.vessel_sim_engine import (
     Waypoint,
     Mission,
     Destination,
     vesselFuel,
     Simulation,
 )
-import Simulation.sim_processor as sp
+import src.Simulation.sim_processor as sp
 from pathlib import Path
 
 script_dir = Path(__file__).resolve().parent
 weath_input_dir_lat40_lon_neg_140 = (
-    script_dir.parent / "Ocean/weather_2_nc/1201_1231_lat30_lon30_fc0_ts6"
+    script_dir.parent / "src/Ocean/weather_2_nc/1201_1231_lat30_lon30_fc0_ts6"
 )
 fc_input_dir_lat40_lon_neg_140 = (
-    script_dir.parent / "Ocean/weather_2_nc/1215_1225_lat10_lon10_fc384_ts9"
+    script_dir.parent / "src/Ocean/weather_2_nc/1215_1225_lat10_lon10_fc384_ts9"
 )
 weath_input_dir_lat35_lon155 = (
-    script_dir.parent / "Ocean/weather_2_nc/1210_1231_lat30_40_lon150_160_fc0_ts6"
+    script_dir.parent / "src/Ocean/weather_2_nc/1210_1231_lat30_40_lon150_160_fc0_ts6"
 )
 fc_input_dir_lat35_lon155 = (
-    script_dir.parent / "Ocean/weather_2_nc/1218_1228_lat30_40_lon150_160_fc350_ts9"
+    script_dir.parent / "src/Ocean/weather_2_nc/1218_1228_lat30_40_lon150_160_fc350_ts9"
 )
-model_path = "Wave_Predictor/torch_data/model.pth"
-npl_path = script_dir.parent / "Simulation" / "Molland_NPL_Data_NumpyRead.csv"
+model_path = "src/Wave_Predictor/torch_data/model.pth"
+npl_path = script_dir.parent / "src" / "Simulation" / "Molland_NPL_Data_NumpyRead.csv"
 
 
 def run_sim_engine():
@@ -136,7 +136,7 @@ def run_sim_engine():
 
 
 run_sim_engine()
-df = sp.simulation_compare("Simulation/sim_db.db", ["sim1"], True)
+df = sp.simulation_compare("src/Simulation/sim_db.db", ["sim1"], True)
 df.to_csv("simulation_results.csv", index=False)
-sp.run_animation("Simulation/sim_db.db", "sim1", 0.2)
-sp.make_fuel_graph("Simulation/sim_db.db", "sim1")
+sp.run_animation("src/Simulation/sim_db.db", "sim1", 0.2)
+sp.make_fuel_graph("src/Simulation/sim_db.db", "sim1")

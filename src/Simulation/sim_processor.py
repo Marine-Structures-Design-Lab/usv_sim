@@ -745,7 +745,7 @@ def simulation_compare(db_filepath, sim_list, display_all_data=True):
 
 
 def main():
-    db_path = "Simulation/sim_db.db"
+    db_path = "src/Simulation/sim_db.db"
     connection = sqlite3.connect(db_path)
     cursor = connection.cursor()
     truncate_script = """

@@ -12,7 +12,7 @@ import sqlite3
 
 class DatabaseManager:
 
-    def __init__(self, db_path="Simulation/sim_db.db"):
+    def __init__(self, db_path="src/Simulation/sim_db.db"):
         """
         Database Manager Constructor
         -------------------------------------

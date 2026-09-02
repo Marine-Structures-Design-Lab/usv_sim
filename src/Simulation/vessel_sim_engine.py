@@ -15,18 +15,18 @@ import cartopy.crs as ccrs
 from pathlib import Path
 from matplotlib.transforms import Affine2D
 from geographiclib.geodesic import Geodesic
-from Simulation.machinery_fuel import (
+from src.Simulation.machinery_fuel import (
     propulsionSimulationBase,
     PropellerPropulsionModel,
     RPM_EngineModel,
     RPM_Power_EngineModel,
     NPL_ResistanceModel,
 )
-from Ocean.basespectra import Bretschneider
-from Ocean.RAO_library import RAO_Library
-from Simulation.ga_mission_planner import VesselProblem, Optimizer
-from Wave_Predictor.Wave_Data_Calc import Wave_Data_Calc
-from Simulation.db_manager import DatabaseManager
+from src.Ocean.basespectra import Bretschneider
+from src.Ocean.RAO_library import RAO_Library
+from src.Simulation.ga_mission_planner import VesselProblem, Optimizer
+from src.Wave_Predictor.Wave_Data_Calc import Wave_Data_Calc
+from src.Simulation.db_manager import DatabaseManager
 
 db_manager = DatabaseManager()
 # set up geographiclib
@@ -38,18 +38,18 @@ logging.basicConfig(filename="simulation.log", filemode="w", level=logging.INFO)
 # file paths
 script_dir = Path(__file__).resolve().parent
 weath_input_dir_lat40_lon_neg_140 = (
-    script_dir.parent / "Ocean/weather_2_nc/1201_1231_lat30_lon30_fc0_ts6"
+    script_dir.parent / "src/Ocean/weather_2_nc/1201_1231_lat30_lon30_fc0_ts6"
 )
 fc_input_dir_lat40_lon_neg_140 = (
-    script_dir.parent / "Ocean/weather_2_nc/1215_1225_lat10_lon10_fc384_ts9"
+    script_dir.parent / "src/Ocean/weather_2_nc/1215_1225_lat10_lon10_fc384_ts9"
 )
 weath_input_dir_lat35_lon155 = (
-    script_dir.parent / "Ocean/weather_2_nc/1210_1231_lat30_40_lon150_160_fc0_ts6"
+    script_dir.parent / "src/Ocean/weather_2_nc/1210_1231_lat30_40_lon150_160_fc0_ts6"
 )
 fc_input_dir_lat35_lon155 = (
-    script_dir.parent / "Ocean/weather_2_nc/1218_1228_lat30_40_lon150_160_fc350_ts9"
+    script_dir.parent / "src/Ocean/weather_2_nc/1218_1228_lat30_40_lon150_160_fc350_ts9"
 )
-model_path = "Wave_Predictor/torch_data/model.pth"
+model_path = "src/Wave_Predictor/torch_data/model.pth"
 npl_path = script_dir.parent / "Simulation" / "Molland_NPL_Data_NumpyRead.csv"
 
 

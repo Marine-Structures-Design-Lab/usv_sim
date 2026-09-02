@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
-from Simulation.vessel_sim_engine import (
+from src.Simulation.vessel_sim_engine import (
     Waypoint,
     Destination,
     Mission,
@@ -15,23 +15,23 @@ import copy
 # file paths
 script_dir = Path(__file__).resolve().parent
 weath_input_dir_lat40_lon_neg_140 = (
-    script_dir.parent / "Ocean/weather_2_nc/1201_1231_lat30_lon30_fc0_ts6"
+    script_dir.parent / "src/Ocean/weather_2_nc/1201_1231_lat30_lon30_fc0_ts6"
 )
 fc_input_dir_lat40_lon_neg_140 = (
-    script_dir.parent / "Ocean/weather_2_nc/1215_1225_lat10_lon10_fc384_ts9"
+    script_dir.parent / "src/Ocean/weather_2_nc/1215_1225_lat10_lon10_fc384_ts9"
 )
 weath_input_dir_lat35_lon155 = (
-    script_dir.parent / "Ocean/weather_2_nc/1210_1231_lat30_40_lon150_160_fc0_ts6"
+    script_dir.parent / "src/Ocean/weather_2_nc/1210_1231_lat30_40_lon150_160_fc0_ts6"
 )
 fc_input_dir_lat35_lon155 = (
-    script_dir.parent / "Ocean/weather_2_nc/1218_1228_lat30_40_lon150_160_fc350_ts9"
+    script_dir.parent / "src/Ocean/weather_2_nc/1218_1228_lat30_40_lon150_160_fc350_ts9"
 )
-model_path = "Wave_Predictor/torch_data/model.pth"
+model_path = "src/Wave_Predictor/torch_data/model.pth"
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from datetime import datetime
 
-from Simulation.vessel_sim_engine import (
+from src.Simulation.vessel_sim_engine import (
     Waypoint,
     Destination,
     Mission,

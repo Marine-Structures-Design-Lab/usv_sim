@@ -1,20 +1,20 @@
 from datetime import datetime
 import numpy as np
 import pytest
-from Ocean.basespectra import Bretschneider
-from Simulation.vessel_sim_engine import Waypoint, Mission, Destination, vesselFuel
-from Simulation.machinery_fuel import (
+from src.Ocean.basespectra import Bretschneider
+from src.Simulation.vessel_sim_engine import Waypoint, Mission, Destination, vesselFuel
+from src.Simulation.machinery_fuel import (
     propulsionSimulationBase,
     PropellerPropulsionModel,
     RPM_EngineModel,
     RPM_Power_EngineModel,
     NPL_ResistanceModel,
 )
-from Ocean.RAO_library import RAO_Library
+from src.Ocean.RAO_library import RAO_Library
 from pathlib import Path
 
 script_dir = Path(__file__).resolve().parent
-ocean_path = script_dir.parent / "Ocean" / "NOAA_NorthAtlantic.nc"
+ocean_path = script_dir.parent / "src/Ocean" / "NOAA_NorthAtlantic.nc"
 
 
 @pytest.fixture
@@ -104,7 +104,7 @@ def test_integration(rao_lib):
         1.491,
     ]
 
-    integration = np.sqrt(np.trapz(response_spectra, x=freq_correct))
+    integration = np.sqrt(np.trapezoid(response_spectra, x=freq_correct))
     assert integration == pytest.approx(1.3, 0.5)
 
 

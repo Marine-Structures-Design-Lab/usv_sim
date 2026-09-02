@@ -1,4 +1,4 @@
-from Ocean import weather_data_downsizer as downsizer
+from src.Ocean import weather_data_downsizer as downsizer
 import os
 import netCDF4
 

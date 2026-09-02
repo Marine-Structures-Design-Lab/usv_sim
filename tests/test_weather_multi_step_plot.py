@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 #! Make sure to run the test from Ocean
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-import Ocean.weather_multi_step_plot as msplt
+import src.Ocean.weather_multi_step_plot as msplt
 
 
 # ------ find_nearest_index TESTS -----

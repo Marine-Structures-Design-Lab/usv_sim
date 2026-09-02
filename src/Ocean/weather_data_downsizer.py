@@ -1,5 +1,6 @@
 import glob
 import os
+from pathlib import Path
 import re
 import datetime as dt
 import time
@@ -13,7 +14,7 @@ import pygrib
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 
-from Ocean.weather_utils import extract_timestamp
+from src.Ocean.weather_utils import extract_timestamp
 
 logging.basicConfig(
     # DEBUG < INFO < WARNING (unexpected happened, but still runs) < ERROR (function not working?) < CRITICAL (software does not work)
@@ -514,9 +515,12 @@ def process_grib_directory(
 
 
 def main():
-    INPUT_DIR = "/home/remecca/core/linked_gribs"
+    script_dir = Path(__file__).resolve().parent
+    INPUT_DIR = script_dir.parent / "src/linked_gribs"
     input_file = os.path.join(INPUT_DIR, "*.grib2")
-    OUTPUT_DIR = os.path.expanduser("~/Documents/MSDL/core/Ocean/tests/weather_2_nc")
+    OUTPUT_DIR = os.path.expanduser(
+        "~/Documents/MSDL/usv_sim/src/Ocean/tests/weather_2_nc"
+    )
 
     # With Empty LAND Values
     START_DATE = "20241218"
@@ -534,7 +538,7 @@ def main():
 
     # Construct directory name
     dir_suffix = f"{start_mmdd}_{end_mmdd}_lat{LAT_S}_{LAT_N}_lon{LON_W}_{LON_E}_fc{FORECAST_HRZ}_ts{TIMESTEP}"
-    base_dir = os.path.expanduser("/home/remecca/core/Ocean/tests/weather_2_nc")
+    base_dir = os.path.expanduser(script_dir.parent / "src/Ocean/tests/weather_2_nc")
     OUTPUT_DIR = os.path.join(base_dir, dir_suffix)
 
     # Call process_single_grib function with the input file and other parameters

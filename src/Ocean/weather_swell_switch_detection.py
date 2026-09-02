@@ -16,7 +16,9 @@ import os
 # -
 
 
-FILE_PATTERN = "Ocean/tests/weather_2_nc/0101_0110_lat-5_5_lon270_280_fc0_ts6/*_000.nc"
+FILE_PATTERN = (
+    "src/Ocean/tests/weather_2_nc/0101_0110_lat-5_5_lon270_280_fc0_ts6/*_000.nc"
+)
 
 
 def angle_diff(a, b):
