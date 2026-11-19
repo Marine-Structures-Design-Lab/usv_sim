@@ -24,9 +24,7 @@ class DatabaseManager:
         self.connection = sqlite3.connect(self.db_path)
         self.cursor = self.connection.cursor()
         self._setup_database()
-        # self.clear_tables()
-        self.cursor.execute("PRAGMA table_info(mission_waypoints)")
-        print(self.cursor.fetchall())
+        
 
     def _setup_database(self):
         """

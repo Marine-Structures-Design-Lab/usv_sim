@@ -38,16 +38,16 @@ logging.basicConfig(filename="simulation.log", filemode="w", level=logging.INFO)
 # file paths
 script_dir = Path(__file__).resolve().parent
 weath_input_dir_lat40_lon_neg_140 = (
-    script_dir.parent / "src/Ocean/weather_2_nc/1201_1231_lat30_lon30_fc0_ts6"
+    script_dir.parent / "Ocean/weather_2_nc/1201_1231_lat30_lon30_fc0_ts6"
 )
 fc_input_dir_lat40_lon_neg_140 = (
-    script_dir.parent / "src/Ocean/weather_2_nc/1215_1225_lat10_lon10_fc384_ts9"
+    script_dir.parent / "Ocean/weather_2_nc/1215_1225_lat10_lon10_fc384_ts9"
 )
 weath_input_dir_lat35_lon155 = (
-    script_dir.parent / "src/Ocean/weather_2_nc/1210_1231_lat30_40_lon150_160_fc0_ts6"
+    script_dir.parent / "Ocean/weather_2_nc/1210_1231_lat30_40_lon150_160_fc0_ts6"
 )
 fc_input_dir_lat35_lon155 = (
-    script_dir.parent / "src/Ocean/weather_2_nc/1218_1228_lat30_40_lon150_160_fc350_ts9"
+    script_dir.parent / "Ocean/weather_2_nc/1218_1228_lat30_40_lon150_160_fc350_ts9"
 )
 model_path = "src/Wave_Predictor/torch_data/model.pth"
 npl_path = script_dir.parent / "Simulation" / "Molland_NPL_Data_NumpyRead.csv"
@@ -1435,78 +1435,63 @@ if __name__ == "__main__":
         Destination(Waypoint(34, 154.5), datetime(2024, 12, 29, 16, 0), 100),
         Destination(Waypoint(36, 152), datetime(2024, 12, 22, 17, 0), 8),
     ]
-    dests_small = [
-        Destination(Waypoint(38.5, -137), datetime(2024, 12, 20, 5, 0), 7),
-        Destination(Waypoint(38.5, -138), datetime(2024, 12, 26, 6, 0), 9),
-    ]
-    mission_small = Mission(dests_small)
-    fc_test_mission1 = Mission(destinations1)
-    fc_test_mission2 = Mission(destinations2)
-    fc_test_mission3 = Mission(destinations3)
-    fc_test_mission4 = Mission(destinations4)
 
-    vessel_fc_test1 = vesselFuel(
+    mission1 = Mission(destinations1)
+    mission2 = Mission(destinations2)
+    mission3 = Mission(destinations3)
+    mission4 = Mission(destinations4)
+
+    vessel1 = vesselFuel(
         "vessel1",
         "sim1",
         Destination(Waypoint(40, -139), datetime(2024, 12, 20, 0, 0), 0),
         Destination(Waypoint(40, -139), datetime(2024, 12, 24, 7, 0), 0),
-        fc_test_mission1,
+        mission1,
         50,
         weath_input_dir_lat40_lon_neg_140,
         model_path=model_path,
         speed=20,
         speed_options=[15, 20, 25],
     )
-    vessel_fc_test2 = vesselFuel(
+    vessel2 = vesselFuel(
         "vessel2",
         "sim1",
         Destination(Waypoint(40, -139), datetime(2024, 12, 20, 0, 0), 0),
         Destination(Waypoint(40, -139), datetime(2024, 12, 24, 7, 0), 0),
-        fc_test_mission2,
+        mission2,
         50,
         weath_input_dir_lat40_lon_neg_140,
         model_path=model_path,
         speed=20,
         speed_options=[15, 20, 25],
     )
-    vessel_fc_test3 = vesselFuel(
+    vessel3 = vesselFuel(
         "vessel3",
         "sim1",
         Destination(Waypoint(36, 155), datetime(2024, 12, 20, 0, 0), 0),
         Destination(Waypoint(36, 155), datetime(2024, 12, 24, 7, 0), 0),
-        fc_test_mission3,
+        mission3,
         50,
         weath_input_dir_lat35_lon155,
         model_path=model_path,
         speed=20,
         speed_options=[15, 20, 25],
     )
-    vessel_fc_test4 = vesselFuel(
+    vessel4 = vesselFuel(
         "vessel4",
         "sim1",
         Destination(Waypoint(35, 155), datetime(2024, 12, 20, 0, 0), 0),
         Destination(Waypoint(35, 155), datetime(2024, 12, 24, 7, 0), 0),
-        fc_test_mission4,
+        mission4,
         50,
         weath_input_dir_lat35_lon155,
         fc_input_dir=fc_input_dir_lat35_lon155,
         speed=20,
         speed_options=[15, 20, 25],
     )
-    vessel_small = vesselFuel(
-        "vessel1",
-        "sim1",
-        Destination(Waypoint(40, -139), datetime(2024, 12, 20, 0, 0), 0),
-        Destination(Waypoint(40, -139), datetime(2024, 12, 24, 7, 0), 0),
-        mission_small,
-        50,
-        weath_input_dir_lat40_lon_neg_140,
-        model_path=model_path,
-        speed=20,
-        speed_options=[15, 20, 25],
-    )
+   
     simulation = Simulation(
-        [vessel_fc_test1, vessel_fc_test2, vessel_fc_test3, vessel_fc_test4],
+        [vessel1],
         datetime(2024, 12, 20, 0),
         datetime(2024, 12, 31, 0, 0),
     )

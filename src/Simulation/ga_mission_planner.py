@@ -652,43 +652,6 @@ class Optimizer(object):
             total += ind.fitness
         return total / len(pop)
 
-    def local_search_speed(self, individual, positions_to_try=5):
-        """
-        Summary
-        ----------------------------------------------
-        Perform local search on a discrete speed list.
-        Tries up to positions_to_try random segments.
-
-        Parameters
-        -----------------------------------------------
-        :param individual: individual object, individual to search
-        :param positions_to_try: int, number of speed positions to search in chrom
-        """
-        best_ind = individual.clone()
-        best_fitness = best_ind.fitness
-        allowed_speeds = self.prob.speeds
-
-        # Randomly pick which speed indices to try
-        num_speeds = len(best_ind.chromosome[1])
-        positions = self.rng.sample(
-            range(num_speeds), k=min(positions_to_try, num_speeds)
-        )
-
-        for i in positions:
-            current_speed = best_ind.chromosome[1][i]
-            for alt_speed in allowed_speeds:
-                if alt_speed == current_speed:
-                    continue
-                new_chromosome = [row[:] for row in best_ind.chromosome]
-                new_chromosome[1][i] = alt_speed
-                new_ind = self.make_vessel_individual(new_chromosome)
-
-                if new_ind.fitness > best_fitness and new_ind.violation_sum == 0:
-                    best_ind = new_ind
-                    best_fitness = new_ind.fitness
-                    break  # Accept first improvement
-
-        return best_ind
 
     def calc_mean_score_no_violations(self, pop):
         """
@@ -853,9 +816,6 @@ class Optimizer(object):
 
             pop = next_gen
             elite = [e.clone() for e in self.get_n_best(next_gen)]
-            if self.current_generation % 5 == 0:
-                for e in elite:
-                    e = self.local_search_speed(e, 10)
             elite.sort()
 
             scores.append(elite[self.Nelite - 1].fitness)
@@ -885,27 +845,7 @@ class Optimizer(object):
         print(f"predicted fuel used {fuel}")
         print(f"predicted fuel remaining {fuel_left}")
         print(f"fitness {elite[self.Nelite-1].fitness}")
-        """
-        fig, ax = plt.subplots(figsize=(8, 6))
-        ax.plot(generations,scores,label='Best Fitness Score')
-        ax.plot(generations,mean_scores,label='Mean Fitness Score')
-        ax.plot(generations,mean_scores_no_violation,label='Mean Fitness No Violation')
-        #plt.plot(generations,mean_mission_len,label='Mean Mission Length')
-        ax.set_title("Mission Priority Scores Vs. Generation")
-        ax.set_xlabel('generation')
-        ax.set_ylabel('proportion of max score')
-        ax.legend()
-        plt.show()
-     
-        records=[]
-        for entry in percents_bests:
-           records.append({
-            "Vessel": self.prob.vessel.name,
-            "Seed": 0,
-            "Generation": entry[1],
-            "Percent Best Ind": entry[0]
-        })
-        """
+
         return (
             opt_dests,
             elite[self.Nelite - 1].chromosome[1],
